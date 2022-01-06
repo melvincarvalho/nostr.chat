@@ -1,0 +1,2 @@
+# nostr.chat
+nostr chat
