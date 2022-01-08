@@ -174,9 +174,9 @@
               if (kind === 0) {
                 let content = JSON.parse(payload.content)
                 if (content.name && content.picture) {
-                  // console.log('payload', content)
+                  console.log('payload', payload)
                   console.log('spux', spux)
-                  var pubkey = spux.user || d[0].pubkey
+                  var pubkey = payload.pubkey
 
                   var p = {
                     id: '#1',
@@ -188,7 +188,11 @@
                     unread: 2
                   }
 
-                  f.push(p)
+                  const found = f.some(person => person.pubkey === pubkey)
+                  if (!found) {
+                    f.push(p)
+                  }
+
                   console.log('followed', f)
                   d[0].roster = f
                   // renderAll()
