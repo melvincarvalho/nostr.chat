@@ -183,9 +183,10 @@
                     name: content.name,
                     image: content.picture,
                     pubkey: pubkey,
-                    blurb: 'Writing...',
+                    blurb: 'Online',
+                    about: content.about,
                     lastMessage: '12:51',
-                    unread: 2
+                    unread: Math.floor(Math.random() * 1.7)
                   }
 
                   const found = f.some(person => person.pubkey === pubkey)

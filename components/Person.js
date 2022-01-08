@@ -68,7 +68,7 @@ var Person = props => {
           <div
             class="flex justify-between text-sm leading-none truncate"
           >
-            <span>${props.roster?.blurb}</span>
+            <span class="ml-1 text-xs font-medium text-gray-500">${props.roster?.blurb}</span>
             <span
               v-else
               class="flex ${props.roster?.unread === 0
