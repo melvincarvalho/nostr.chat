@@ -137,7 +137,7 @@
 
       globalThis.spux = { ...di.data, ...qs }
 
-      var relay = 'wss://relayer.fiatjaf.com'
+      var relay = 'wss://nostr-pub.wellorder.net'
       var id = Math.random()
       var d = di.data
 
@@ -239,12 +239,29 @@
                     unread: Math.floor(Math.random() * 1.7)
                   }
 
+                  p.unread = 0
+                  d[0].messages.forEach(el => {
+                    if (
+                      el.source === pubkey &&
+                      el.destination === payload.pubkey
+                    )
+                      p.unread++
+                    if (
+                      el.destination === pubkey &&
+                      el.source === payload.pubkey
+                    )
+                      p.unread++
+                  })
+
                   const found = f.some(
                     person => person.pubkey === payload.pubkey
                   )
                   if (!found) {
                     f.push(p)
                   }
+                  f = f.sort((a, b) => {
+                    return b.unread - a.unread
+                  })
 
                   console.log('followed', f)
                   d[0].roster = f
@@ -279,6 +296,7 @@
               return true
             }
           })
+
           console.log('massage', m)
 
           return html`
