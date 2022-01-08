@@ -6,7 +6,7 @@ var Message = props => {
       <div
         class="p-4 text-sm bg-white rounded-t-lg rounded-${props.side}-lg shadow"
       >
-        ${props.message.text}
+        ${props.message.description}
       </div>
     </div>
   `

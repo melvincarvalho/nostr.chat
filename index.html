@@ -74,16 +74,17 @@
               "unread": 0
             }
           ],
-          "messages": [
+          "messages": [],
+          "messagesold": [
             {
               "id": "#m1",
               "author": "#1",
-              "text": "Have you seen the new nostr chat?"
+              "description": "Have you seen the new nostr chat?"
             },
             {
               "id": "#m2",
               "author": "#2",
-              "text": "Just checking it out, right now!"
+              "description": "Just checking it out, right now!"
             }
           ]
         },
@@ -201,7 +202,7 @@
                 var message = {
                   source: payload.pubkey,
                   destination: payload.tags[0][1],
-                  content: payload.content,
+                  description: payload.content,
                   timestamp: payload.created_at
                 }
                 d[0].messages.push(message)
@@ -269,6 +270,16 @@
               if (el.id === currentPerson) return true
             }) || d[0]
           console.log('currentPerson', currentPerson)
+
+          var m = d[0].messages.filter(el => {
+            if (
+              el.source === currentPerson.id ||
+              el.destination === currentPerson.id
+            ) {
+              return true
+            }
+          })
+          console.log('massage', m)
 
           return html`
             <div
@@ -535,8 +546,11 @@
                       >
                         Jan 6
                       </div>
-                      <${Message} message="${messages[0]}" side="l" />
-                      <${Message} message="${messages[1]}" side="r" />
+                      ${m.map(el => {
+                        return html`
+                          <${Message} message="${el}" />
+                        `
+                      })}
                     </div>
                   </div>
                   <div
