@@ -548,7 +548,10 @@
                       </div>
                       ${m.map(el => {
                         return html`
-                          <${Message} message="${el}" />
+                          <${Message}
+                            message="${el}"
+                            side=${el.source === currentPerson.id ? 'l' : 'r'}
+                          />
                         `
                       })}
                     </div>
@@ -712,7 +715,7 @@
                     >
                       About
                     </div>
-                    <div class="mr-auto text-sm font-semibold text-gray-800">
+                    <div class="mr-auto text-sm  text-gray-400">
                       ${currentPerson.about}
                     </div>
                   </div>
@@ -739,12 +742,11 @@
                       <div
                         class="mt-1 ml-4 mr-auto text-sm font-semibold leading-none text-gray-600"
                       >
-                        Username
+                        Username / Pubkey
                       </div>
-                      <div
-                        class="ml-4 mr-auto text-sm font-semibold text-gray-800"
-                      >
-                        @${currentPerson.nick}
+                      <div class="break-all ml-4 mr-auto text-sm text-gray-400">
+                        @${currentPerson.name}<br /><br />
+                        ${currentPerson.id}
                       </div>
                     </div>
                   </div>
@@ -771,7 +773,7 @@
                         Notifications
                       </div>
                       <div
-                        class="mt-1 mr-auto text-sm font-semibold leading-none text-gray-600"
+                        class="mt-1 mr-auto text-sm leading-none text-gray-400"
                       >
                         Enabled
                       </div>
