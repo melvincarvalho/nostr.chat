@@ -16,7 +16,7 @@ var Person = props => {
         >
           <img
             class="object-cover w-12 h-12 rounded-full"
-            src="${props.roster.image}"
+            src="${props.roster?.image}"
             alt=""
           />
           <div
@@ -32,7 +32,7 @@ var Person = props => {
         <div class="items-center flex-1 min-w-0">
           <div class="flex justify-between mb-1">
             <h2 class="text-sm font-semibold text-black">
-              ${props.roster.name}
+              ${props.roster?.name}
             </h2>
             <div class="flex">
               <svg
@@ -61,20 +61,20 @@ var Person = props => {
                 />
               </svg>
               <span class="ml-1 text-xs font-medium text-gray-600"
-              >${props.roster.lastMessage}</span
+              >${props.roster?.lastMessage}</span
               >
             </div>
           </div>
           <div
             class="flex justify-between text-sm leading-none truncate"
           >
-            <span>${props.roster.blurb}</span>
+            <span>${props.roster?.blurb}</span>
             <span
               v-else
-              class="flex ${props.roster.unread === 0
+              class="flex ${props.roster?.unread === 0
       ? ''
       : 'bg-green-500'} items-center justify-center w-5 h-5 text-xs text-right text-white  rounded-full"
-            >${props.roster.unread || ''}</span
+            >${props.roster?.unread || ''}</span
             >
           </div>
         </div>

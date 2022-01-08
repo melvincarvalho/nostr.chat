@@ -118,7 +118,7 @@
         ws.send(
           '["REQ", "' +
             id +
-            '", { "kinds": [3], "authors": ["ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69"] }]'
+            '", { "kinds": [3], "authors": ["3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d"] }]'
         )
         ws.addEventListener('message', e => {
           var json = JSON.parse(e.data)
@@ -157,7 +157,7 @@
               f.push(p)
               console.log('followed', f)
               roster = f
-              // renderAll()
+              renderAll()
             }
           }
         })
@@ -741,7 +741,7 @@
         )
       }
 
-      setTimeout(renderAll, 3000)
+      setTimeout(renderAll, 0)
     </script>
   </head>
   <body></body>
