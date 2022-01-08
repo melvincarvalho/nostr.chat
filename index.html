@@ -110,15 +110,21 @@
       import './js/dior.js'
 
       var relay = 'wss://relayer.fiatjaf.com'
-      var id = '1234'
+      var id = Math.random()
 
       var ws = new ReconnectingWebSocket(relay)
       ws.addEventListener('open', () => {
+        var pubkey =
+          spux.user ||
+          'ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69'
+
         console.log('connected to', relay)
         ws.send(
           '["REQ", "' +
             id +
-            '", { "kinds": [3], "authors": ["3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d"] }]'
+            '", { "kinds": [3], "authors": ["' +
+            pubkey +
+            '"] }]'
         )
         ws.addEventListener('message', e => {
           var json = JSON.parse(e.data)
@@ -142,13 +148,16 @@
             let content = JSON.parse(payload.content)
             if (content.name && content.picture) {
               // console.log('payload', content)
+              console.log('spux', spux)
+              var pubkey =
+                spux.user ||
+                'ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69'
 
               var p = {
                 id: '#1',
                 name: content.name,
                 image: content.picture,
-                pubkey:
-                  '5a462fa6044b4b8da318528a6987a45e3adf832bd1c64bd6910eacfecdf07541',
+                pubkey: pubkey,
                 blurb: 'Writing...',
                 lastMessage: '12:51',
                 unread: 2
@@ -162,6 +171,12 @@
           }
         })
       })
+
+      globalThis.qs = Object.fromEntries(
+        new URLSearchParams(document.location.search)
+      )
+
+      globalThis.spux = { ...di.data, ...qs }
 
       var me = di.data[0]
       var roster = di.data[0].roster
