@@ -16,7 +16,7 @@
           "image": "https://melvincarvalho.com/m.jpg",
           "status": "Online",
           "phone": "+1 555 543 654",
-          "pubkey": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
+          "pubkey": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69",
           "roster": [
             {
               "id": "#1",
@@ -148,7 +148,7 @@
             console.log('connected to', relay)
 
             // init
-            var pubkey = spux.user || d[0].pubkey
+            var pubkey = qs.user || d[0].pubkey
 
             // get follows
             sendReq(id, 3, [pubkey], ws)
@@ -182,9 +182,15 @@
                   // console.log('payload', payload)
                   // console.log('spux', spux)
 
-                  if (payload.pubkey === spux.user) {
+                  var p = qs.user || pubkey
+                  console.log('p', p)
+                  console.log('payload.pubkey', payload.pubkey)
+
+                  if (payload.pubkey === p) {
                     d[0].about = content.about
                     d[0].name = content.name
+                    d[0].fullname = content.name
+                    d[0].image = content.picture
                     console.log('about', content.about)
                   }
 
@@ -621,7 +627,7 @@
                     </button>
                   </div>
                   <p class="text-lg font-semibold text-center text-gray-800">
-                    ${d[0].fullname}.
+                    ${d[0].fullname}
                   </p>
                   <p class="text-sm font-medium text-center text-blue-500">
                     ${d[0].status}
