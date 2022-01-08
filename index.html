@@ -16,6 +16,7 @@
           "image": "https://melvincarvalho.com/m.jpg",
           "status": "Online",
           "phone": "+1 555 543 654",
+          "pubkey": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69",
           "roster": [
             {
               "id": "#1",
@@ -106,71 +107,9 @@
       import Person from './components/Person.js'
       import Message from './components/Message.js'
       import ReconnectingWebSocket from 'https://cdn.skypack.dev/reconnecting-websocket'
+      import handleMutation from './js/handlemutation.js'
 
       import './js/dior.js'
-
-      var relay = 'wss://relayer.fiatjaf.com'
-      var id = Math.random()
-
-      var ws = new ReconnectingWebSocket(relay)
-      ws.addEventListener('open', () => {
-        var pubkey =
-          spux.user ||
-          'ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69'
-
-        console.log('connected to', relay)
-        ws.send(
-          '["REQ", "' +
-            id +
-            '", { "kinds": [3], "authors": ["' +
-            pubkey +
-            '"] }]'
-        )
-        ws.addEventListener('message', e => {
-          var json = JSON.parse(e.data)
-          var payload = json[2]
-          // console.log(json)
-          var kind = payload.kind
-          console.log('kind', kind)
-
-          if (kind === 3) {
-            var followed = json[2].tags
-            followed.forEach(i => {
-              // console.log(i)
-              let msg =
-                '["REQ", "1234", { "kinds": [0], "authors": ["' + i[1] + '"] }]'
-              // console.log('msg', msg)
-              ws.send(msg)
-            })
-            console.log('got event', followed)
-          }
-          if (kind === 0) {
-            let content = JSON.parse(payload.content)
-            if (content.name && content.picture) {
-              // console.log('payload', content)
-              console.log('spux', spux)
-              var pubkey =
-                spux.user ||
-                'ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69'
-
-              var p = {
-                id: '#1',
-                name: content.name,
-                image: content.picture,
-                pubkey: pubkey,
-                blurb: 'Writing...',
-                lastMessage: '12:51',
-                unread: 2
-              }
-
-              f.push(p)
-              console.log('followed', f)
-              roster = f
-              renderAll()
-            }
-          }
-        })
-      })
 
       globalThis.qs = Object.fromEntries(
         new URLSearchParams(document.location.search)
@@ -178,14 +117,95 @@
 
       globalThis.spux = { ...di.data, ...qs }
 
-      var me = di.data[0]
-      var roster = di.data[0].roster
-      var messages = di.data[0].messages
+      var relay = 'wss://relayer.fiatjaf.com'
+      var id = Math.random()
+      var d = di.data
+
+      var me = d[0]
+      var messages = d[0].messages
       var f = []
 
-      function renderAll () {
-        render(
-          html`
+      class App extends Component {
+        constructor (props) {
+          super(props)
+          this.state = {}
+          this.processMutation = this.processMutation.bind(this)
+        }
+
+        componentDidMount () {
+          console.log('handle mutations')
+          handleMutation('data', this.processMutation)
+
+          var ws = new ReconnectingWebSocket(relay)
+          ws.addEventListener('open', () => {
+            var pubkey = spux.user || d[0].pubkey
+
+            // get follows
+            console.log('connected to', relay)
+            ws.send(
+              '["REQ", "' +
+                id +
+                '", { "kinds": [3], "authors": ["' +
+                pubkey +
+                '"] }]'
+            )
+            ws.addEventListener('message', e => {
+              var json = JSON.parse(e.data)
+              var payload = json[2]
+              // console.log(json)
+              var kind = payload.kind
+              console.log('kind', kind)
+
+              if (kind === 3) {
+                var followed = json[2].tags
+                followed.forEach(i => {
+                  // console.log(i)
+
+                  // get profiles
+                  let msg =
+                    '["REQ", "1234", { "kinds": [0], "authors": ["' +
+                    i[1] +
+                    '"] }]'
+                  // console.log('msg', msg)
+                  ws.send(msg)
+                })
+                console.log('got event', followed)
+              }
+              if (kind === 0) {
+                let content = JSON.parse(payload.content)
+                if (content.name && content.picture) {
+                  // console.log('payload', content)
+                  console.log('spux', spux)
+                  var pubkey = spux.user || d[0].pubkey
+
+                  var p = {
+                    id: '#1',
+                    name: content.name,
+                    image: content.picture,
+                    pubkey: pubkey,
+                    blurb: 'Writing...',
+                    lastMessage: '12:51',
+                    unread: 2
+                  }
+
+                  f.push(p)
+                  console.log('followed', f)
+                  d[0].roster = f
+                  // renderAll()
+                  di.data.muation = true
+                  this.setState({ update: Math.random() })
+                }
+              }
+            })
+          })
+        }
+
+        processMutation () {
+          console.log('mutation!')
+        }
+
+        render () {
+          return html`
             <div
               class="relative flex w-full h-screen overflow-hidden antialiased bg-gray-200"
             >
@@ -309,12 +329,11 @@
                   <ul
                     class="flex flex-col inline-block w-full h-screen px-2 select-none"
                   >
-                    <${Person} roster="${roster[0]}" />
-                    <${Person} roster="${roster[1]}" />
-                    <${Person} roster="${roster[2]}" />
-                    <${Person} roster="${roster[3]}" />
-                    <${Person} roster="${roster[4]}" />
-                    <${Person} roster="${roster[5]}" />
+                    ${d[0].roster.map(el => {
+                      return html`
+                        <${Person} roster="${el}" />
+                      `
+                    })}
                   </ul>
                 </div>
                 <div class="fixed absolute bottom-0 right-0 z-40 mb-6 mr-4">
@@ -751,12 +770,16 @@
                 </ul>
               </nav>
             </div>
-          `,
-          document.body
-        )
+          `
+        }
       }
 
-      setTimeout(renderAll, 0)
+      render(
+        html`
+          <${App} />
+        `,
+        document.body
+      )
     </script>
   </head>
   <body></body>
