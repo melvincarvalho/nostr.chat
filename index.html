@@ -257,7 +257,9 @@
                     person => person.pubkey === payload.pubkey
                   )
                   if (!found) {
-                    f.push(p)
+                    if (p.id !== pubkey) {
+                      f.push(p)
+                    }
                   }
                   f = f.sort((a, b) => {
                     return b.unread - a.unread
