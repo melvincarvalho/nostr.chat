@@ -17,6 +17,7 @@
           "status": "Online",
           "phone": "+1 555 543 654",
           "pubkey": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69",
+          "messages": [],
           "roster": [
             {
               "id": "#1",
@@ -85,6 +86,10 @@
               "text": "Just checking it out, right now!"
             }
           ]
+        },
+        {
+          "id": "#ui",
+          "currentchatid": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69"
         }
       ]
     </script>
@@ -112,10 +117,17 @@
       import './js/dior.js'
 
       // functions
-      function sendReq (id, kind, authors, ws) {
-        ws.send(
-          `["REQ", "${id}", { "kinds": [${kind}], "authors": ["${authors[0]}"] }]`
-        )
+      function sendReq (id, kind, authors, ws, p) {
+        reqs++
+        if (authors) {
+          let req = `["REQ", "${id}", { "kinds": [${kind}], "authors": ["${authors[0]}"] }]`
+          console.log('req', reqs, req)
+          ws.send(req)
+        } else if (p) {
+          let req = `["REQ", "${id}", { "kinds": [${kind}], "#p": ["${p[0]}"] }]`
+          console.log('req', reqs, req)
+          ws.send(req)
+        }
       }
 
       globalThis.qs = Object.fromEntries(
@@ -131,12 +143,17 @@
       var me = d[0]
       var messages = d[0].messages
       var f = []
+      var reqs = 0
 
       class App extends Component {
         constructor (props) {
           super(props)
           this.state = {}
           this.processMutation = this.processMutation.bind(this)
+        }
+
+        handleClick () {
+          console.log('click')
         }
 
         componentDidMount () {
@@ -155,6 +172,10 @@
 
             // get user
             sendReq(id, 0, [pubkey], ws)
+
+            // get encrypted chat
+            sendReq(id, 4, [pubkey], ws)
+            sendReq(id, 4, null, ws, [pubkey])
 
             ws.addEventListener('message', e => {
               var json = JSON.parse(e.data)
@@ -175,11 +196,22 @@
                 console.log('got event', followed)
               }
 
+              // chat
+              if (kind === 4) {
+                var message = {
+                  source: payload.pubkey,
+                  destination: payload.tags[0][1],
+                  content: payload.content,
+                  timestamp: payload.created_at
+                }
+                d[0].messages.push(message)
+              }
+
               // profiles
               if (kind === 0) {
                 let content = JSON.parse(payload.content)
                 if (content.name && content.picture) {
-                  // console.log('payload', payload)
+                  // payload : , payload)
                   // console.log('spux', spux)
 
                   var p = qs.user || pubkey
@@ -189,13 +221,14 @@
                   if (payload.pubkey === p) {
                     d[0].about = content.about
                     d[0].name = content.name
+                    d[0].nick = content.nick
                     d[0].fullname = content.name
                     d[0].image = content.picture
                     console.log('about', content.about)
                   }
 
                   var p = {
-                    id: '#1',
+                    id: payload.pubkey,
                     name: content.name,
                     image: content.picture,
                     pubkey: payload.pubkey,
@@ -225,9 +258,18 @@
 
         processMutation () {
           console.log('mutation!')
+          this.setState({ mutation: true })
         }
 
         render () {
+          var currentPerson = d[1]?.currentchatid
+
+          currentPerson =
+            d[0]?.roster?.find(el => {
+              if (el.id === currentPerson) return true
+            }) || d[0]
+          console.log('currentPerson', currentPerson)
+
           return html`
             <div
               class="relative flex w-full h-screen overflow-hidden antialiased bg-gray-200"
@@ -386,7 +428,7 @@
                 >
                   <div
                     class="w-12 h-12 mx-4 my-2 bg-blue-500 bg-center bg-no-repeat bg-cover rounded-full cursor-pointer"
-                    style="background-image: url(${d[0].image})"
+                    style="background-image: url(${currentPerson.image})"
                   ></div>
                   <div
                     class="flex flex-col justify-center flex-1 overflow-hidden cursor-pointer"
@@ -394,12 +436,12 @@
                     <div
                       class="overflow-hidden text-base font-medium leading-tight text-gray-600 whitespace-no-wrap"
                     >
-                      ${d[0].name}
+                      ${currentPerson.name}
                     </div>
                     <div
                       class="overflow-hidden text-sm font-medium leading-tight text-gray-600 whitespace-no-wrap"
                     >
-                      ${d[0].status}
+                      ${currentPerson.status}
                     </div>
                   </div>
                   <div
@@ -621,16 +663,16 @@
                     >
                       <img
                         class="content-center object-cover w-full h-full border-2 border-gray-200 rounded-full"
-                        src="${d[0].image}"
+                        src="${currentPerson.image}"
                         alt=""
                       />
                     </button>
                   </div>
                   <p class="text-lg font-semibold text-center text-gray-800">
-                    ${d[0].fullname}
+                    ${currentPerson.fullname}
                   </p>
                   <p class="text-sm font-medium text-center text-blue-500">
-                    ${d[0].status}
+                    ${currentPerson.status}
                   </p>
                 </div>
                 <div class="flex items-center w-full px-3 mt-6">
@@ -657,7 +699,7 @@
                       About
                     </div>
                     <div class="mr-auto text-sm font-semibold text-gray-800">
-                      ${d[0].about}
+                      ${currentPerson.about}
                     </div>
                   </div>
                 </div>
@@ -688,7 +730,7 @@
                       <div
                         class="ml-4 mr-auto text-sm font-semibold text-gray-800"
                       >
-                        @${d[0].nick}
+                        @${currentPerson.nick}
                       </div>
                     </div>
                   </div>
