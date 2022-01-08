@@ -11,12 +11,12 @@
           "id": "#me",
           "name": "Melvin",
           "fullname": "Melvin Carvalho",
-          "nick": "Melvin",
+          "nick": "melvincarvalho",
           "about": "roaming the earth...",
           "image": "https://melvincarvalho.com/m.jpg",
           "status": "Online",
           "phone": "+1 555 543 654",
-          "pubkey": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69",
+          "pubkey": "3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d",
           "roster": [
             {
               "id": "#1",
@@ -82,7 +82,7 @@
             {
               "id": "#m2",
               "author": "#2",
-              "text": "Just checking it out, right now"
+              "text": "Just checking it out, right now!"
             }
           ]
         }
@@ -111,6 +111,13 @@
 
       import './js/dior.js'
 
+      // functions
+      function sendReq (id, kind, authors, ws) {
+        ws.send(
+          `["REQ", "${id}", { "kinds": [${kind}], "authors": ["${authors[0]}"] }]`
+        )
+      }
+
       globalThis.qs = Object.fromEntries(
         new URLSearchParams(document.location.search)
       )
@@ -138,22 +145,16 @@
 
           var ws = new ReconnectingWebSocket(relay)
           ws.addEventListener('open', () => {
+            console.log('connected to', relay)
+
+            // init
             var pubkey = spux.user || d[0].pubkey
 
             // get follows
-            console.log('connected to', relay)
-            ws.send(
-              '["REQ", "' +
-                id +
-                '", { "kinds": [3], "authors": ["' +
-                pubkey +
-                '"] }]'
-            )
+            sendReq(id, 3, [pubkey], ws)
 
-            let msg =
-              '["REQ", "1234", { "kinds": [0], "authors": ["' + pubkey + '"] }]'
-            // console.log('msg', msg)
-            ws.send(msg)
+            // get user
+            sendReq(id, 0, [pubkey], ws)
 
             ws.addEventListener('message', e => {
               var json = JSON.parse(e.data)
@@ -162,30 +163,28 @@
               var kind = payload.kind
               console.log('kind', kind)
 
+              // follows
               if (kind === 3) {
                 var followed = json[2].tags
                 followed.forEach(i => {
                   // console.log(i)
 
-                  // get profiles
-                  let msg =
-                    '["REQ", "1234", { "kinds": [0], "authors": ["' +
-                    i[1] +
-                    '"] }]'
-                  // console.log('msg', msg)
-                  ws.send(msg)
+                  // get profiles of follows
+                  sendReq(id, 0, [i[1]], ws)
                 })
                 console.log('got event', followed)
               }
+
+              // profiles
               if (kind === 0) {
                 let content = JSON.parse(payload.content)
                 if (content.name && content.picture) {
-                  console.log('payload', payload)
-                  console.log('spux', spux)
-                  var pubkey = payload.pubkey
+                  // console.log('payload', payload)
+                  // console.log('spux', spux)
 
-                  if (pubkey === d[0].pubkey) {
+                  if (payload.pubkey === spux.user) {
                     d[0].about = content.about
+                    d[0].name = content.name
                     console.log('about', content.about)
                   }
 
@@ -193,14 +192,16 @@
                     id: '#1',
                     name: content.name,
                     image: content.picture,
-                    pubkey: pubkey,
+                    pubkey: payload.pubkey,
                     blurb: 'Online',
                     about: content.about,
                     lastMessage: '12:51',
                     unread: Math.floor(Math.random() * 1.7)
                   }
 
-                  const found = f.some(person => person.pubkey === pubkey)
+                  const found = f.some(
+                    person => person.pubkey === payload.pubkey
+                  )
                   if (!found) {
                     f.push(p)
                   }
@@ -379,7 +380,7 @@
                 >
                   <div
                     class="w-12 h-12 mx-4 my-2 bg-blue-500 bg-center bg-no-repeat bg-cover rounded-full cursor-pointer"
-                    style="background-image: url(${me.image})"
+                    style="background-image: url(${d[0].image})"
                   ></div>
                   <div
                     class="flex flex-col justify-center flex-1 overflow-hidden cursor-pointer"
@@ -387,12 +388,12 @@
                     <div
                       class="overflow-hidden text-base font-medium leading-tight text-gray-600 whitespace-no-wrap"
                     >
-                      ${me.name}
+                      ${d[0].name}
                     </div>
                     <div
                       class="overflow-hidden text-sm font-medium leading-tight text-gray-600 whitespace-no-wrap"
                     >
-                      ${me.status}
+                      ${d[0].status}
                     </div>
                   </div>
                   <div
@@ -614,16 +615,16 @@
                     >
                       <img
                         class="content-center object-cover w-full h-full border-2 border-gray-200 rounded-full"
-                        src="${me.image}"
+                        src="${d[0].image}"
                         alt=""
                       />
                     </button>
                   </div>
                   <p class="text-lg font-semibold text-center text-gray-800">
-                    ${me.fullname}.
+                    ${d[0].fullname}.
                   </p>
                   <p class="text-sm font-medium text-center text-blue-500">
-                    ${me.status}
+                    ${d[0].status}
                   </p>
                 </div>
                 <div class="flex items-center w-full px-3 mt-6">
@@ -650,7 +651,7 @@
                       About
                     </div>
                     <div class="mr-auto text-sm font-semibold text-gray-800">
-                      ${me.about}
+                      ${d[0].about}
                     </div>
                   </div>
                 </div>
@@ -681,7 +682,7 @@
                       <div
                         class="ml-4 mr-auto text-sm font-semibold text-gray-800"
                       >
-                        @${me.nick}
+                        @${d[0].nick}
                       </div>
                     </div>
                   </div>
