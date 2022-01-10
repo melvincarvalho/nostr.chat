@@ -149,7 +149,7 @@
       class App extends Component {
         constructor (props) {
           super(props)
-          this.state = {}
+          this.state = { pubkey: qs.user || d[0].pubkey }
           this.processMutation = this.processMutation.bind(this)
         }
 
@@ -571,6 +571,7 @@
                           <${Message}
                             message="${el}"
                             side=${el.source === currentPerson.id ? 'l' : 'r'}
+                            pubkey="${this.state.pubkey}"
                           />
                         `
                       })}
