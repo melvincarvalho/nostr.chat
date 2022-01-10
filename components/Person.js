@@ -15,7 +15,12 @@ class Person extends Component {
     di.data[1].currentchatid = id
     var d = document.getElementById('data')
     console.log('d', d)
+    var messages = di.data[0].messages
+    di.data[0].messages = []
     d.innerHTML = JSON.stringify(di.data, null, 2)
+    di.data[0].messages = messages
+    d.innerHTML = JSON.stringify(di.data, null, 2)
+
   }
 
   render() {
