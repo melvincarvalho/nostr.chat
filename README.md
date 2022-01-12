@@ -30,7 +30,7 @@ Run your own, or demo can be seen at [nostr.chat](https://nostr.chat)
 
 Nostr.chat does not have any dependencies, just run a web server on the files and you are ready to go
 
-Alternatively run form npm using serve
+Alternatively run from npm using serve
 
 ```sh
 npx nostr-chat
