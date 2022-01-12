@@ -1,7 +1,37 @@
 import { html, Component } from 'https://unpkg.com/htm/preact/standalone.module.js'
 import secp256k1 from 'https://cdn.skypack.dev/noble-secp256k1'
 import hexToArrayBuffer from 'https://cdn.skypack.dev/hex-to-array-buffer'
+import sha256 from 'https://cdn.skypack.dev/sha256'
 
+// import { Buffer } from 'https://cdn.skypack.dev/buffer'
+// import createHash from 'https://cdn.skypack.dev/create-hash'
+
+function verifySignature(event) {
+  return secp256k1.schnorr.verify(event.sig, event.id, event.pubkey)
+}
+
+function getEventHash(event) {
+  let eventHash = createHash('sha256')
+    .update(Buffer.from(serializeEvent(event)))
+    .digest()
+  return Buffer.from(eventHash).toString('hex')
+}
+
+function getRelays() {
+  var relays = di.data[0].relay.filter(i => i.mode === 'rw').map(i => i.id)
+  return relays
+}
+
+function sendToRelay(relay, msg) {
+  var ws = new WebSocket(relay)
+  ws.onopen = function (e) {
+    console.log('connected to', relay)
+    console.log('sending', msg)
+    ws.send(msg)
+    var timeout = 1000
+    setTimeout(() => ws.close(), timeout)
+  }
+}
 
 async function generateKey(rawKey) {
   var usages = ['encrypt', 'decrypt']
@@ -26,13 +56,99 @@ function _base64ToArrayBuffer(base64) {
   return bytes.buffer
 }
 
+function _arrayBufferToBase64(buffer) {
+  var binary = '';
+  var bytes = new Uint8Array(buffer);
+  var len = bytes.byteLength;
+  for (var i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
 class Message extends Component {
   constructor(props) {
     super(props)
+    this.setState({})
+    this.sendMessage = this.sendMessage.bind(this)
+
   }
 
   async componentDidMount() {
     var priv = localStorage.getItem('key')
+  }
+
+  async sendMessage(e) {
+
+
+
+    if (e.keyCode === 13) {
+      var created_at = Math.floor(new Date().getTime() / 1000.0)
+      console.log('e', e.target.value)
+      console.log('keycode', e.keyCode)
+
+      var kind = 4
+      var pubkey = di.data[0].partnerid
+      var priv = localStorage.getItem('key')
+
+      var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
+      var shared = sharedPoint.substr(2, 64)
+      var genkey = await generateKey(hexToArrayBuffer(shared))
+      var iv = await window.crypto.getRandomValues(new Uint8Array(16))
+      let enc = new TextEncoder();
+      var encoded = enc.encode(e.target.value);
+      var content = await window.crypto.subtle.encrypt(
+        {
+          name: "AES-CBC",
+          iv
+        },
+        genkey,
+        encoded
+      )
+      content = _arrayBufferToBase64(content)
+      iv = _arrayBufferToBase64(iv)
+      var comb = content + '?iv=' + iv
+
+      console.log('shared', shared)
+      console.log('content', content)
+      console.log('iv', iv)
+      console.log('comb', comb)
+
+
+      var canonical = []
+      canonical.push(0)
+      canonical.push(di.data[0].pubkey)
+      canonical.push(created_at)
+      canonical.push(kind)
+      canonical.push([["p", pubkey]])
+      canonical.push(comb)
+      var sha = sha256(JSON.stringify(canonical))
+
+      console.log('canonical', JSON.stringify(canonical))
+
+
+      var event = {
+        id: sha,
+        pubkey: di.data[0].pubkey,
+        created_at: created_at,
+        kind: kind,
+        tags: [["p", pubkey]],
+        content: comb
+      }
+      event.sig = await secp256k1.schnorr.sign(sha, priv)
+
+      var verify = await verifySignature(event)
+      console.log('verified', verify)
+
+      console.log('Sending...', JSON.stringify(['EVENT', event], di.data[0].relay[1].id))
+
+      this.setState({ message: '' })
+
+      var relays = getRelays()
+      console.log('relays', relays)
+      sendToRelay(relays[0], JSON.stringify(['EVENT', event]))
+    }
+
   }
 
   render() {
@@ -69,7 +185,7 @@ class Message extends Component {
           <button
             type="submit"
             class="p-1 focus:outline-none focus:shadow-none hover:text-blue-500"
-            onClick=${() => { alert('Send Coming Soon...') }}
+            onClick=${this.sendMessage}
           >
             <svg
               class="w-6 h-6 fill-current"
@@ -87,6 +203,7 @@ class Message extends Component {
         </span>
         <input
           type="search"
+          value=${this.state.message} onKeyUp=${this.sendMessage}
           class="w-full py-2 pl-10 text-sm bg-white border border-transparent appearance-none rounded-tg placeholder-gray-800 focus:bg-white focus:outline-none focus:border-blue-500 focus:text-gray-900 focus:shadow-outline-blue"
           style="border-radius: 25px"
           placeholder="Message..."

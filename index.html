@@ -18,6 +18,16 @@
           "phone": "+1 555 543 654",
           "pubkey": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69",
           "messages": [],
+          "relay": [
+            {
+              "id": "wss://nostr-pub.wellorder.net",
+              "mode": "r"
+            },
+            {
+              "id": "ws://nostr.rocks:8443",
+              "mode": "rw"
+            }
+          ],
           "roster": [
             {
               "id": "#1",
@@ -139,6 +149,7 @@
       globalThis.spux = { ...di.data, ...qs }
 
       var relay = 'wss://nostr-pub.wellorder.net'
+      relay = di.data[0].relay[0].id
       var id = Math.random()
       var d = di.data
 

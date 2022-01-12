@@ -31,6 +31,7 @@ class Message extends Component {
   constructor(props) {
     super(props)
     var id = props.pubkey === props.message.source ? props.message.destination : props.message.source
+    di.data[0].partnerid = id
     this.setState({ id: id })
   }
 
