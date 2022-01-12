@@ -8,13 +8,16 @@ Nostr Chat UI
 
 ---
 
+![nostr chat](./images/nostrchat.jpg)
+
+---
+
 <div align="center">
 <h4>Getting Started</h4>
 </div>
   
 ---
   
-
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/melvincarvalho/nostr.chat/blob/gh-pages/LICENSE)
 [![npm](https://img.shields.io/npm/v/nostr-chat)](https://npmjs.com/package/nostr-chat)
 [![npm](https://img.shields.io/npm/dw/nostr-chat.svg)](https://npmjs.com/package/nostr-chat)
