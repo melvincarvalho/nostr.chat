@@ -95,7 +95,7 @@ class Message extends Component {
       console.log('keycode', e.keyCode)
 
       var kind = 4
-      var pubkey = di.data[0].partnerid
+      var pubkey = di.data[1].currentchatid
 
       var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
       var shared = sharedPoint.substr(2, 64)
