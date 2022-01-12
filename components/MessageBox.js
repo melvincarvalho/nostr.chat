@@ -83,13 +83,19 @@ class Message extends Component {
 
 
     if (e.keyCode === 13) {
+      var priv = localStorage.getItem('key')
+      if (!priv) {
+        alert(`localeStorage.setIem('key', <privkey>)`)
+        return
+      }
+
+
       var created_at = Math.floor(new Date().getTime() / 1000.0)
       console.log('e', e.target.value)
       console.log('keycode', e.keyCode)
 
       var kind = 4
       var pubkey = di.data[0].partnerid
-      var priv = localStorage.getItem('key')
 
       var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
       var shared = sharedPoint.substr(2, 64)
