@@ -173,117 +173,120 @@
           console.log('handle mutations')
           handleMutation('data', this.processMutation)
 
-          var ws = new ReconnectingWebSocket(relay)
-          ws.addEventListener('open', () => {
-            console.log('connected to', relay)
+          di.data[0].relay.map(el => {
+            var ws = new ReconnectingWebSocket(el.id)
 
-            // init
-            var pubkey = qs.user || d[0].pubkey
+            ws.addEventListener('open', () => {
+              console.log('connected to', relay)
 
-            // get follows
-            sendReq(id, 3, [pubkey], ws)
+              // init
+              var pubkey = qs.user || d[0].pubkey
 
-            // get user
-            sendReq(id, 0, [pubkey], ws)
+              // get follows
+              sendReq(id, 3, [pubkey], ws)
 
-            // get encrypted chat
-            sendReq(id, 4, [pubkey], ws)
-            sendReq(id, 4, null, ws, [pubkey])
+              // get user
+              sendReq(id, 0, [pubkey], ws)
 
-            ws.addEventListener('message', e => {
-              var json = JSON.parse(e.data)
-              var payload = json[2]
-              // console.log(json)
-              var kind = payload.kind
-              console.log('kind', kind)
+              // get encrypted chat
+              sendReq(id, 4, [pubkey], ws)
+              sendReq(id, 4, null, ws, [pubkey])
 
-              // follows
-              if (kind === 3) {
-                var followed = json[2].tags
-                followed.forEach(i => {
-                  // console.log(i)
+              ws.addEventListener('message', e => {
+                var json = JSON.parse(e.data)
+                var payload = json[2]
+                // console.log(json)
+                var kind = payload.kind
+                console.log('kind', kind)
 
-                  // get profiles of follows
-                  sendReq(id, 0, [i[1]], ws)
-                })
-                console.log('got event', followed)
-              }
+                // follows
+                if (kind === 3) {
+                  var followed = json[2].tags
+                  followed.forEach(i => {
+                    // console.log(i)
 
-              // chat
-              if (kind === 4) {
-                var message = {
-                  source: payload.pubkey,
-                  destination: payload.tags[0][1],
-                  description: payload.content,
-                  timestamp: payload.created_at
-                }
-                d[0].messages.push(message)
-              }
-
-              // profiles
-              if (kind === 0) {
-                let content = JSON.parse(payload.content)
-                if (content.name && content.picture) {
-                  // payload : , payload)
-                  // console.log('spux', spux)
-
-                  var p = qs.user || pubkey
-                  console.log('p', p)
-                  console.log('payload.pubkey', payload.pubkey)
-
-                  if (payload.pubkey === p) {
-                    d[0].about = content.about
-                    d[0].name = content.name
-                    d[0].nick = content.nick
-                    d[0].fullname = content.name
-                    d[0].image = content.picture
-                    console.log('about', content.about)
-                  }
-
-                  var p = {
-                    id: payload.pubkey,
-                    name: content.name,
-                    image: content.picture,
-                    pubkey: payload.pubkey,
-                    blurb: 'Online',
-                    about: content.about,
-                    lastMessage: '12:51',
-                    unread: Math.floor(Math.random() * 1.7)
-                  }
-
-                  p.unread = 0
-                  d[0].messages.forEach(el => {
-                    if (
-                      el.source === pubkey &&
-                      el.destination === payload.pubkey
-                    )
-                      p.unread++
-                    if (
-                      el.destination === pubkey &&
-                      el.source === payload.pubkey
-                    )
-                      p.unread++
+                    // get profiles of follows
+                    sendReq(id, 0, [i[1]], ws)
                   })
+                  console.log('got event', followed)
+                }
 
-                  const found = f.some(
-                    person => person.pubkey === payload.pubkey
-                  )
-                  if (!found) {
-                    if (p.id !== pubkey) {
-                      f.push(p)
+                // chat
+                if (kind === 4) {
+                  var message = {
+                    source: payload.pubkey,
+                    destination: payload.tags[0][1],
+                    description: payload.content,
+                    timestamp: payload.created_at
+                  }
+                  d[0].messages.push(message)
+                }
+
+                // profiles
+                if (kind === 0) {
+                  let content = JSON.parse(payload.content)
+                  if (content.name && content.picture) {
+                    // payload : , payload)
+                    // console.log('spux', spux)
+
+                    var p = qs.user || pubkey
+                    console.log('p', p)
+                    console.log('payload.pubkey', payload.pubkey)
+
+                    if (payload.pubkey === p) {
+                      d[0].about = content.about
+                      d[0].name = content.name
+                      d[0].nick = content.nick
+                      d[0].fullname = content.name
+                      d[0].image = content.picture
+                      console.log('about', content.about)
                     }
-                  }
-                  f = f.sort((a, b) => {
-                    return b.unread - a.unread
-                  })
 
-                  console.log('followed', f)
-                  d[0].roster = f
-                  // renderAll()
-                  di.data.muation = true
-                  this.setState({ update: Math.random() })
+                    var p = {
+                      id: payload.pubkey,
+                      name: content.name,
+                      image: content.picture,
+                      pubkey: payload.pubkey,
+                      blurb: 'Online',
+                      about: content.about,
+                      lastMessage: '12:51',
+                      unread: Math.floor(Math.random() * 1.7)
+                    }
+
+                    p.unread = 0
+                    d[0].messages.forEach(el => {
+                      if (
+                        el.source === pubkey &&
+                        el.destination === payload.pubkey
+                      )
+                        p.unread++
+                      if (
+                        el.destination === pubkey &&
+                        el.source === payload.pubkey
+                      )
+                        p.unread++
+                    })
+
+                    const found = f.some(
+                      person => person.pubkey === payload.pubkey
+                    )
+                    if (!found) {
+                      if (p.id !== pubkey) {
+                        f.push(p)
+                      }
+                    }
+                    f = f.sort((a, b) => {
+                      return b.unread - a.unread
+                    })
+
+                    console.log('followed', f)
+                    d[0].roster = f
+                    // renderAll()
+                    di.data.muation = true
+                    this.setState({ update: Math.random() })
+                  }
                 }
-              }
+              })
             })
           })
         }
