@@ -1,0 +1,29 @@
+{
+  "name": "nostr-chat",
+  "version": "0.0.1",
+  "description": "nostr chat",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "nostr": "bin/serve.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melvincarvalho/nostr.chat.git"
+  },
+  "keywords": [
+    "nostr"
+  ],
+  "author": "Melvin Carvalho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/melvincarvalho/nostr.chat/issues"
+  },
+  "homepage": "https://github.com/melvincarvalho/nostr.chat#readme",
+  "dependencies": {
+    "serve": "^13.0.2",
+    "skill-serve": "^0.0.6"
+  }
+}
