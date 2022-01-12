@@ -30,9 +30,15 @@ function _base64ToArrayBuffer(base64) {
 class Message extends Component {
   constructor(props) {
     super(props)
-    var id = props.pubkey === props.message.source ? props.message.destination : props.message.source
+    var id = (props.pubkey === props.message.source) ? props.message.destination : props.message.source
+
     di.data[0].partnerid = id
-    this.setState({ id: id })
+
+    var color = (props.pubkey === props.message.source) ? '#EFFDDE' : 'white'
+
+    var side = (props.pubkey === props.message.source) ? 'end' : 'start'
+
+    this.setState({ id: id, color: color, side: side })
   }
 
   async componentDidMount() {
@@ -104,11 +110,11 @@ class Message extends Component {
 
 
     return html`
-      <div class="self-${this.props.side === 'r' ? 'end' : 'start'} w-3/4 my-2">
-        <div
-          class="p-4 text-sm bg-white rounded-t-lg rounded-${this.props.side}-lg shadow"
+      <div  class="self-${this.state.side} w-3/4 my-2">
+        <div style="background-color: ${this.state.color}"
+          class="p-4 text-sm bg-white rounded-t-lg rounded-end-lg shadow"
         >
-          ${this.state.decrypted} <span class="ml-1 text-xs font-medium text-gray-600">${moment(new Date(this.props.message.timestamp * 1000)).fromNow()}</span>
+          ${this.state.decrypted} <span class="ml-1 text-xs font-small text-gray-600 self-end">${moment(new Date(this.props.message.timestamp * 1000)).fromNow()}</span>
         </div>
       </div>
     `
