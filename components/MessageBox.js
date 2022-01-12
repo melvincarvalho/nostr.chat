@@ -85,7 +85,7 @@ class Message extends Component {
     if (e.keyCode === 13) {
       var priv = localStorage.getItem('key')
       if (!priv) {
-        alert(`localeStorage.setIem('key', <privkey>)`)
+        alert(`localStorage.setIem('key', <privkey>)`)
         return
       }
 
