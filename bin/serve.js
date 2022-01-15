@@ -10,13 +10,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 
 var port = process.env.PORT || 7788
-var root = path.join(__dirname, '..')
+var public = path.join(__dirname, '..')
 
 console.log('root directory:', root)
 
 const options = {
   port: port,
-  root: root
+  public: public
 }
 
 const server = http.createServer((request, response) => {
