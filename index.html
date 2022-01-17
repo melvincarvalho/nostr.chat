@@ -101,6 +101,21 @@
         {
           "id": "#ui",
           "currentchatid": "ed1d0e1f743a7d19aa2dfb0162df73bacdbc699f67cc55bb91a98c35f7deac69"
+        },
+        {
+          "id": "",
+          "mainEntity": "#app"
+        },
+        {
+          "id": "#app",
+          "name": "nostr.chat",
+          "settings": "#settings"
+        },
+        {
+          "#settings": {
+            "user": "#me",
+            "viewer": "#me"
+          }
         }
       ]
     </script>
@@ -128,7 +143,7 @@
 
       import './js/dior.js'
 
-      // functions
+      // FUNCTIONS
       function sendReq (id, kind, authors, ws, p) {
         reqs++
         if (authors) {
@@ -142,26 +157,31 @@
         }
       }
 
+      // get me i.e. public key
+      async function me () {
+        return window.nostr?.getPublicKey() || qs.user || di.data[0].pubkey
+      }
+
+      // INIT
       globalThis.qs = Object.fromEntries(
         new URLSearchParams(document.location.search)
       )
 
       globalThis.spux = { ...di.data, ...qs }
 
-      var relay = 'wss://nostr-pub.wellorder.net'
-      relay = di.data[0].relay[0].id
+      var relay = di.data[0].relay[0].id
       var id = Math.random()
       var d = di.data
 
-      var me = d[0]
       var messages = d[0].messages
       var f = []
       var reqs = 0
 
+      // COMPONENTS
       class App extends Component {
         constructor (props) {
           super(props)
-          this.state = { pubkey: qs.user || d[0].pubkey }
+          this.state = {}
           this.processMutation = this.processMutation.bind(this)
         }
 
@@ -169,18 +189,22 @@
           console.log('click')
         }
 
-        componentDidMount () {
+        async componentDidMount () {
+          var pub = await me()
+          this.setState({ pubKey: pub })
+          console.log('pub', pub)
           console.log('handle mutations')
           handleMutation('data', this.processMutation)
 
+          // FETCH
           di.data[0].relay.map(el => {
             var ws = new ReconnectingWebSocket(el.id)
 
             ws.addEventListener('open', () => {
-              console.log('connected to', relay)
+              console.log('connected to', el)
 
               // init
-              var pubkey = qs.user || d[0].pubkey
+              var pubkey = pub
 
               // get follows
               sendReq(id, 3, [pubkey], ws)
@@ -229,7 +253,7 @@
                     // payload : , payload)
                     // console.log('spux', spux)
 
-                    var p = qs.user || pubkey
+                    var p = this.state.pubKey
                     console.log('p', p)
                     console.log('payload.pubkey', payload.pubkey)
 
@@ -315,6 +339,7 @@
         }
 
         render () {
+          //
           var currentPerson = d[1]?.currentchatid
 
           currentPerson =
