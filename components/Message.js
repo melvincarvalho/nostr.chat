@@ -1,4 +1,4 @@
-import { html, Component } from 'https://unpkg.com/htm/preact/standalone.module.js'
+import { html, Component } from '../js/preacthtm.js'
 import secp256k1 from 'https://cdn.skypack.dev/noble-secp256k1'
 import hexToArrayBuffer from 'https://cdn.skypack.dev/hex-to-array-buffer'
 import moment from 'https://cdn.skypack.dev/moment'

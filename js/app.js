@@ -3,7 +3,7 @@ import {
   html,
   Component,
   render
-} from 'https://unpkg.com/htm/preact/standalone.module.js'
+} from '../js/preacthtm.js'
 
 import Person from '../components/Person.js'
 import Message from '../components/Message.js'
@@ -39,7 +39,8 @@ function debug(debug) {
 
 // get me i.e. public key
 async function me() {
-  return window.nostr?.getPublicKey() || qs.user || _('#me').pubkey
+  return window.nostr?.getPublicKey()
+  //  || qs.user || _('#me').pubkey
 }
 
 function findNode(id, currentNode) {
@@ -104,6 +105,8 @@ class App extends Component {
   }
 
   // QUEUE
+  //
+  // [[event, ws]]
   addToQueue(event, ws) {
     this.lastEvent = Date.now()
     this.queue.push([event, ws])
@@ -112,14 +115,15 @@ class App extends Component {
   async processQueue() {
     var q = this.queue
     this.processed++
-    // console.log(this.processed, 'processing queue', 'length', q?.length, 'timestamp', this.lastEvent)
+
+    console.log(this.processed, 'processing queue', 'length', q?.length, 'timestamp', this.lastEvent)
     var elapsed = Date.now() - startTime
     console.log('time (ms)', elapsed)
     if (!q || q?.length === 0) {
       return
     }
 
-    return
+    // return
     var pubkey = await me()
 
     var item = q?.pop()
@@ -128,7 +132,7 @@ class App extends Component {
 
     var json = JSON.parse(e.data)
     var payload = json[2]
-    // console.log(json)
+    console.log(json)
     var kind = payload.kind
     // console.log('kind', kind)
 
@@ -140,7 +144,7 @@ class App extends Component {
         authors.push(i[1])
       })
       if (json[1] === 'me') {
-        // sendReq(id, 0, authors, ws)
+        sendReq(id, 0, authors, ws)
       }
       // followed.forEach(i => {
       //   // console.log(i)
@@ -285,7 +289,7 @@ class App extends Component {
 
   processMutation() {
     console.log('mutation!')
-    var currentPerson = _('#iu')?.currentchatid
+    var currentPerson = _('#ui')?.currentchatid
     currentPerson =
       _('#me')?.roster?.find(el => {
         if (el.id === currentPerson) return true
@@ -308,7 +312,7 @@ class App extends Component {
 
   render() {
     // init
-    var currentPerson = _('#iu')?.currentchatid
+    var currentPerson = _('#ui')?.currentchatid
 
     currentPerson =
       _('#me')?.roster?.find(el => {

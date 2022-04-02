@@ -25,9 +25,13 @@
   },
   "homepage": "https://github.com/melvincarvalho/nostr.chat#readme",
   "dependencies": {
+    "hex-to-array-buffer": "^2.0.0",
     "http": "^0.0.1-security",
+    "moment": "^2.29.1",
+    "noble-secp256k1": "^1.2.14",
     "path": "^0.12.7",
     "serve": "^13.0.2",
+    "sha256": "^0.2.0",
     "url": "^0.11.0"
   }
 }
