@@ -16,6 +16,7 @@ import '../js/dior.js'
 console.time('nostr.chat')
 
 var startTime = 0
+var authenticatedUser
 
 // FUNCTIONS
 function sendReq(id, kind, authors, ws, p) {
@@ -39,7 +40,17 @@ function debug(debug) {
 
 // get me i.e. public key
 async function me() {
-  return window.nostr?.getPublicKey()
+  if (authenticatedUser) {
+    return authenticatedUser
+  }
+
+  var nos2x = window.nostr?.getPublicKey()
+
+  if (nos2x) {
+    authenticatedUser = nos2x
+  }
+
+  return authenticatedUser
   //  || qs.user || _('#me').pubkey
 }
 
@@ -118,7 +129,7 @@ class App extends Component {
 
     console.log(this.processed, 'processing queue', 'length', q?.length, 'timestamp', this.lastEvent)
     var elapsed = Date.now() - startTime
-    console.log('time (ms)', elapsed)
+    // console.log('time (ms)', elapsed)
     if (!q || q?.length === 0) {
       return
     }
@@ -268,7 +279,9 @@ class App extends Component {
 
         // get follows
         // this.addToQueue('me', 3, [pubkey], ws)
-        sendReq('me', 3, [pubkey], ws)
+        if (pubkey) {
+          sendReq('me', 3, [pubkey], ws)
+        }
 
         // get user
         // sendReq(id, 0, [pubkey], ws)
@@ -450,7 +463,7 @@ class App extends Component {
                       <div
                         class="self-center px-2 py-1 mx-0 my-1 text-sm text-green text-gray-700 bg-white border border-gray-200 rounded-full shadow rounded-tg"
                       >
-                        Jan 6
+                        Apr 2
                       </div>
                       ${this.state.m?.map(el => {
       return html`
