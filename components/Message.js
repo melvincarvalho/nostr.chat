@@ -11,7 +11,7 @@ async function me() {
     return authenticatedUser
   }
 
-  var nos2x = window.nostr?.getPublicKey()
+  var nos2x = await window.nostr?.getPublicKey()
 
   if (nos2x) {
     authenticatedUser = nos2x

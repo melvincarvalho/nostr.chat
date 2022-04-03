@@ -44,7 +44,10 @@ async function me() {
     return authenticatedUser
   }
 
-  var nos2x = window.nostr?.getPublicKey()
+
+  const delay = t => new Promise(resolve => setTimeout(resolve, t));
+
+  var nos2x = await delay(100).then(() => window.nostr?.getPublicKey())
 
   if (nos2x) {
     authenticatedUser = nos2x
