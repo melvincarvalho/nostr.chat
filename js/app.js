@@ -246,12 +246,13 @@ class App extends Component {
 
         } else {
 
-          // setTimeout(this.processQueue, 100)
         }
       }
     }
 
-
+    if (q && q.length > 0) {
+      proceessQueue()
+    }
 
   }
 
@@ -287,8 +288,10 @@ class App extends Component {
         // sendReq(id, 0, [pubkey], ws)
 
         // get encrypted chat
-        // sendReq(id, 4, [pubkey], ws)
-        // sendReq(id, 4, null, ws, [pubkey])
+        if (pubkey) {
+          sendReq(id, 4, [pubkey], ws)
+          sendReq(id, 4, null, ws, [pubkey])
+        }
 
         // process events
         ws.addEventListener('message', e => {
