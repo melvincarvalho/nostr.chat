@@ -3,6 +3,24 @@ import secp256k1 from 'https://cdn.skypack.dev/noble-secp256k1'
 import hexToArrayBuffer from 'https://cdn.skypack.dev/hex-to-array-buffer'
 import moment from 'https://cdn.skypack.dev/moment'
 
+var authenticatedUser
+
+// get me i.e. public key
+async function me() {
+  if (authenticatedUser) {
+    return authenticatedUser
+  }
+
+  var nos2x = window.nostr?.getPublicKey()
+
+  if (nos2x) {
+    authenticatedUser = nos2x
+  }
+
+  return authenticatedUser
+  //  || qs.user || _('#me').pubkey
+}
+
 
 async function generateKey(rawKey) {
   var usages = ['encrypt', 'decrypt']
@@ -49,6 +67,21 @@ class Message extends Component {
     var iv = split[1]
     var pub = this.state.id
     console.log('pub', this.props.message)
+    console.log('nip04', window.nostr.nip04, pub, this.props.message.description)
+
+    var m = await me()
+    console.log('m', m)
+    var counterparty = m === this.props.message.source ? this.props.message.destination : this.props.message.source
+
+    var decoded = await window.nostr.nip04.decrypt(counterparty, this.props.message.description)
+
+    console.log('decoded', decoded)
+
+    if (decoded) {
+      this.setState({ decoded: decoded })
+    }
+
+
     var priv = localStorage.getItem('key')
     if (!priv) return
     var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pub)
@@ -69,9 +102,14 @@ class Message extends Component {
     var decoded = new TextDecoder().decode(decrypted)
     this.setState({ decrypted: decoded })
 
+    console.log('nip04', window.nostr)
+
   }
 
   async didComponentUpdate() {
+
+    console.log('nip04', window.nostr)
+
     console.log('UPDATE!')
     let split = this.props.message.description?.split('?iv=')
     console.log('chat message', split[0])
@@ -80,6 +118,7 @@ class Message extends Component {
     var iv = split[1]
     var pub = this.state.id
     console.log('pub', this.props.message)
+    console.log('nostr', window.nostr)
     var priv = localStorage.getItem('key')
     if (!priv) return
     var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pub)
@@ -104,6 +143,8 @@ class Message extends Component {
       console.log("NEEDS UPDATE!")
     }
 
+
+
   }
 
   render() {
@@ -114,7 +155,7 @@ class Message extends Component {
         <div style="background-color: ${this.state.color}"
           class="p-4 text-sm bg-white rounded-t-lg rounded-end-lg shadow"
         >
-          ${this.state.decrypted} <span class="ml-1 text-xs font-small text-gray-600 self-end">${moment(new Date(this.props.message.timestamp * 1000)).fromNow()}</span>
+          ${this.state.decoded || this.props.message.description} <span class="ml-1 text-xs font-small text-gray-600 self-end">${moment(new Date(this.props.message.timestamp * 1000)).fromNow()}</span>
         </div>
       </div>
     `
