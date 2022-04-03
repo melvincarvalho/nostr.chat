@@ -157,9 +157,9 @@ class Message extends Component {
 
       console.log('event', event)
 
-
-      var verify = await verifySignature(event)
-      console.log('verified', verify)
+      // remove noble dep. I know it verifies
+      // var verify = await verifySignature(event)
+      // console.log('verified', verify)
 
       console.log('Sending...', JSON.stringify(['EVENT', event], di.data[0].relay[1].id))
 
