@@ -6,6 +6,27 @@ import sha256 from 'https://cdn.skypack.dev/sha256'
 // import { Buffer } from 'https://cdn.skypack.dev/buffer'
 // import createHash from 'https://cdn.skypack.dev/create-hash'
 
+var authenticatedUser
+
+// get me i.e. public key
+async function me() {
+  if (authenticatedUser) {
+    return authenticatedUser
+  }
+
+
+  const delay = t => new Promise(resolve => setTimeout(resolve, t));
+
+  var nos2x = await delay(100).then(() => window.nostr?.getPublicKey())
+
+  if (nos2x) {
+    authenticatedUser = nos2x
+  }
+
+  return authenticatedUser
+  //  || qs.user || _('#me').pubkey
+}
+
 function verifySignature(event) {
   return secp256k1.schnorr.verify(event.sig, event.id, event.pubkey)
 }
@@ -101,6 +122,7 @@ class Message extends Component {
 
       var kind = 4
       var pubkey = di.data[1].currentchatid
+      var authenticatedUser = await me()
 
       // var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
       // var shared = sharedPoint.substr(2, 64)
@@ -130,7 +152,7 @@ class Message extends Component {
 
       var canonical = []
       canonical.push(0)
-      canonical.push(di.data[0].pubkey)
+      canonical.push(authenticatedUser)
       canonical.push(created_at)
       canonical.push(kind)
       canonical.push([["p", pubkey]])
@@ -142,7 +164,7 @@ class Message extends Component {
 
       var event = {
         id: sha,
-        pubkey: di.data[0].pubkey,
+        pubkey: authenticatedUser,
         created_at: created_at,
         kind: kind,
         tags: [["p", pubkey]],
