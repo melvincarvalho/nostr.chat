@@ -83,9 +83,14 @@ class Message extends Component {
 
 
     if (e.keyCode === 13) {
-      var priv = localStorage.getItem('key')
-      if (!priv) {
-        alert(`localStorage.setIem('key', <privkey>)`)
+      // var priv = localStorage.getItem('key')
+      // if (!priv) {
+      //   alert(`localStorage.setIem('key', <privkey>)`)
+      //   return
+      // }
+
+      if (!window.nostr?.signEvent) {
+        alert(`nos2x required to send messages`)
         return
       }
 
@@ -97,28 +102,30 @@ class Message extends Component {
       var kind = 4
       var pubkey = di.data[1].currentchatid
 
-      var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
-      var shared = sharedPoint.substr(2, 64)
-      var genkey = await generateKey(hexToArrayBuffer(shared))
-      var iv = await window.crypto.getRandomValues(new Uint8Array(16))
-      let enc = new TextEncoder();
-      var encoded = enc.encode(e.target.value);
-      var content = await window.crypto.subtle.encrypt(
-        {
-          name: "AES-CBC",
-          iv
-        },
-        genkey,
-        encoded
-      )
-      content = _arrayBufferToBase64(content)
-      iv = _arrayBufferToBase64(iv)
-      var comb = content + '?iv=' + iv
+      // var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
+      // var shared = sharedPoint.substr(2, 64)
+      // var genkey = await generateKey(hexToArrayBuffer(shared))
+      // var iv = await window.crypto.getRandomValues(new Uint8Array(16))
+      // let enc = new TextEncoder();
+      // var encoded = enc.encode(e.target.value);
+      // var content = await window.crypto.subtle.encrypt(
+      //   {
+      //     name: "AES-CBC",
+      //     iv
+      //   },
+      //   genkey,
+      //   encoded
+      // )
+      // content = _arrayBufferToBase64(content)
+      // iv = _arrayBufferToBase64(iv)
+      // var comb = content + '?iv=' + iv
 
-      console.log('shared', shared)
-      console.log('content', content)
-      console.log('iv', iv)
-      console.log('comb', comb)
+      // console.log('shared', shared)
+      // console.log('content', content)
+      // console.log('iv', iv)
+      // console.log('comb', comb)
+
+      var comb = await window.nostr.nip04.encrypt(pubkey, e.target.value)
 
 
       var canonical = []
@@ -141,7 +148,15 @@ class Message extends Component {
         tags: [["p", pubkey]],
         content: comb
       }
-      event.sig = await secp256k1.schnorr.sign(sha, priv)
+
+      console.log('event', event)
+
+
+      // event.sig = await secp256k1.schnorr.sign(sha, priv)
+      event.sig = await window.nostr.signEvent(event)
+
+      console.log('event', event)
+
 
       var verify = await verifySignature(event)
       console.log('verified', verify)
