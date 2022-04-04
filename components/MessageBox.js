@@ -208,7 +208,7 @@ class Message extends Component {
 
 
       // event.sig = await secp256k1.schnorr.sign(sha, priv)
-      event.sig = await window.nostr.signEvent(event)
+      event = await window.nostr.signEvent(event)
 
       console.log('event', event)
 
