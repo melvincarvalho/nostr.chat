@@ -323,6 +323,7 @@ class App extends Component {
       }) || _('#me')
 
     var m = []
+    this.setState({ m: [] })
     var m = _('#me').messages.filter(el => {
       if (
         el.source === currentPerson.id ||
@@ -333,7 +334,8 @@ class App extends Component {
     })
     m = m.sort((a, b) => a.timestamp - b.timestamp)
 
-    this.setState({ mutation: true, m: m, currentPerson: currentPerson })
+    setTimeout(() => { this.setState({ mutation: true, m: m, currentPerson: currentPerson }) }, 10)
+
     console.log('setstate m', m)
   }
 
