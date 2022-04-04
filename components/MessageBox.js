@@ -8,6 +8,39 @@ import sha256 from 'https://cdn.skypack.dev/sha256'
 
 var authenticatedUser
 
+function _(id) {
+  return findNode(id, di.data)
+}
+
+function findNode(id, currentNode) {
+  var i,
+    currentChild,
+    result;
+
+  if (id == currentNode.id || id == currentNode['@id']) {
+    return currentNode;
+  } else {
+
+    // Use a for loop instead of forEach to avoid nested functions
+    // Otherwise "return" will not work properly
+    for (i = 0; i < currentNode.length; i += 1) {
+      currentChild = currentNode[i];
+
+      // Search in the current child
+      result = findNode(id, currentChild);
+
+      // Return the result if the node has been found
+      if (result !== false) {
+        return result;
+      }
+    }
+
+    // The node has not been found and we have no more options
+    return false;
+  }
+}
+
+
 // get me i.e. public key
 async function me() {
   if (authenticatedUser) {
@@ -190,6 +223,18 @@ class Message extends Component {
       var relays = getRelays()
       console.log('relays', relays)
       sendToRelay(relays[0], JSON.stringify(['EVENT', event]))
+
+      var message = {
+        source: authenticatedUser,
+        destination: pubkey,
+        description: comb,
+        timestamp: created_at
+      }
+      console.log('adding message', message)
+      _('#me').messages.push(message)
+      var d = document.getElementById('data')
+      d.innerHTML = JSON.stringify(di.data, null, 2)
+
     }
 
   }
