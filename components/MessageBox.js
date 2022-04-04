@@ -208,7 +208,11 @@ class Message extends Component {
 
 
       // event.sig = await secp256k1.schnorr.sign(sha, priv)
-      event = await window.nostr.signEvent(event)
+      if (navigator.userAgent.indexOf("Firefox") > 0) {
+        event.sig = await window.nostr.signEvent(event)
+      } else {
+        event = await window.nostr.signEvent(event)
+      }
 
       console.log('event', event)
 
