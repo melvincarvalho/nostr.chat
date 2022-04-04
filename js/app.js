@@ -173,12 +173,15 @@ class App extends Component {
     // process chat messages
     if (kind === 4) {
       var message = {
+        id: payload.id,
         source: payload.pubkey,
         destination: payload.tags[0][1],
         description: payload.content,
         timestamp: payload.created_at
       }
-      _('#me').messages.push(message)
+      if (_('#me').messages.filter(e => e.id === payload.id).length === 0) {
+        _('#me').messages.push(message)
+      }
     }
 
     // process profiles
@@ -247,11 +250,16 @@ class App extends Component {
           di.data.muation = true
           this.setState({ update: Math.random() })
 
+
         } else {
 
         }
       }
     }
+
+    var d = document.getElementById('data')
+    d.innerHTML = JSON.stringify(di.data, null, 2)
+
 
     if (q && q.length > 0) {
       proceessQueue()

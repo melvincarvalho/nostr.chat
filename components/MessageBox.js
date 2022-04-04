@@ -225,13 +225,16 @@ class Message extends Component {
       sendToRelay(relays[0], JSON.stringify(['EVENT', event]))
 
       var message = {
+        id: sha,
         source: authenticatedUser,
         destination: pubkey,
         description: comb,
         timestamp: created_at
       }
       console.log('adding message', message)
-      _('#me').messages.push(message)
+      if (_('#me').messages.filter(e => e.id === sha).length === 0) {
+        _('#me').messages.push(message)
+      }
       var d = document.getElementById('data')
       d.innerHTML = JSON.stringify(di.data, null, 2)
 
