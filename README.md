@@ -29,6 +29,8 @@ Nostr Chat is a chat interface for the [nostr](https://github.com/fiatjaf/nostr)
 
 Run your own, or demo can be seen at [nostr.chat](https://nostr.chat)
 
+Please install [nos2x](https://github.com/fiatjaf/nos2x) browser extension for key management
+
 ## Installation
 
 Nostr.chat does not have any dependencies, just run a web server on the files and you are ready to go
