@@ -10,6 +10,7 @@ import Message from '../components/Message.js'
 import MessageBox from '../components/MessageBox.js'
 import ReconnectingWebSocket from 'https://cdn.skypack.dev/reconnecting-websocket'
 import handleMutation from '../js/handlemutation.js'
+import { me } from '../js/functions.js'
 
 import '../js/dior.js'
 
@@ -39,23 +40,7 @@ function debug(debug) {
 }
 
 // get me i.e. public key
-async function me() {
-  if (authenticatedUser) {
-    return authenticatedUser
-  }
 
-
-  const delay = t => new Promise(resolve => setTimeout(resolve, t));
-
-  var nos2x = await delay(100).then(() => window.nostr?.getPublicKey())
-
-  if (nos2x) {
-    authenticatedUser = nos2x
-  }
-
-  return authenticatedUser
-  //  || qs.user || _('#me').pubkey
-}
 
 function findNode(id, currentNode) {
   var i,

@@ -2,24 +2,9 @@ import { html, Component } from '../js/preacthtm.js'
 import secp256k1 from 'https://cdn.skypack.dev/noble-secp256k1'
 import hexToArrayBuffer from 'https://cdn.skypack.dev/hex-to-array-buffer'
 import moment from 'https://cdn.skypack.dev/moment'
+import { me } from '../js/functions.js'
 
 var authenticatedUser
-
-// get me i.e. public key
-async function me() {
-  if (authenticatedUser) {
-    return authenticatedUser
-  }
-
-  var nos2x = await window.nostr?.getPublicKey()
-
-  if (nos2x) {
-    authenticatedUser = nos2x
-  }
-
-  return authenticatedUser
-  //  || qs.user || _('#me').pubkey
-}
 
 
 async function generateKey(rawKey) {

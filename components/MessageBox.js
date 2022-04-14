@@ -2,6 +2,7 @@ import { html, Component } from 'https://unpkg.com/htm/preact/standalone.module.
 import secp256k1 from 'https://cdn.skypack.dev/noble-secp256k1'
 import hexToArrayBuffer from 'https://cdn.skypack.dev/hex-to-array-buffer'
 import sha256 from 'https://cdn.skypack.dev/sha256'
+import { me } from '../js/functions.js'
 
 // import { Buffer } from 'https://cdn.skypack.dev/buffer'
 // import createHash from 'https://cdn.skypack.dev/create-hash'
@@ -40,25 +41,6 @@ function findNode(id, currentNode) {
   }
 }
 
-
-// get me i.e. public key
-async function me() {
-  if (authenticatedUser) {
-    return authenticatedUser
-  }
-
-
-  const delay = t => new Promise(resolve => setTimeout(resolve, t));
-
-  var nos2x = await delay(100).then(() => window.nostr?.getPublicKey())
-
-  if (nos2x) {
-    authenticatedUser = nos2x
-  }
-
-  return authenticatedUser
-  //  || qs.user || _('#me').pubkey
-}
 
 function verifySignature(event) {
   return secp256k1.schnorr.verify(event.sig, event.id, event.pubkey)
