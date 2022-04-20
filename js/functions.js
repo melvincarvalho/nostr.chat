@@ -13,9 +13,9 @@ async function me() {
   var nos2x = await delay(100).then(() => window.nostr?.getPublicKey())
 
   if (nos2x) {
-    if (navigator.userAgent.indexOf("Firefox") > 0) {
-      nos2x = nos2x.split(/(..)/g).filter(i => i).map(i => String.fromCharCode(parseInt(i, 16))).join('')
-    }
+    // if (navigator.userAgent.indexOf("Firefox") > 0) {
+    //   nos2x = nos2x.split(/(..)/g).filter(i => i).map(i => String.fromCharCode(parseInt(i, 16))).join('')
+    // }
     authenticatedUser = nos2x
   }
 
