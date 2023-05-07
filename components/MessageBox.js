@@ -7,71 +7,80 @@ import { me } from '../js/functions.js'
 // import { Buffer } from 'https://cdn.skypack.dev/buffer'
 // import createHash from 'https://cdn.skypack.dev/create-hash'
 
-var authenticatedUser
+let authenticatedUser
 
 function _(id) {
   return findNode(id, di.data)
 }
 
 function findNode(id, currentNode) {
-  var i,
+  let i,
     currentChild,
-    result;
+    result
 
   if (id == currentNode.id || id == currentNode['@id']) {
-    return currentNode;
+    return currentNode
   } else {
-
     // Use a for loop instead of forEach to avoid nested functions
     // Otherwise "return" will not work properly
     for (i = 0; i < currentNode.length; i += 1) {
-      currentChild = currentNode[i];
+      currentChild = currentNode[i]
 
       // Search in the current child
-      result = findNode(id, currentChild);
+      result = findNode(id, currentChild)
 
       // Return the result if the node has been found
       if (result !== false) {
-        return result;
+        return result
       }
     }
 
     // The node has not been found and we have no more options
-    return false;
+    return false
   }
 }
-
 
 function verifySignature(event) {
   return secp256k1.schnorr.verify(event.sig, event.id, event.pubkey)
 }
 
 function getEventHash(event) {
-  let eventHash = createHash('sha256')
+  const eventHash = createHash('sha256')
     .update(Buffer.from(serializeEvent(event)))
     .digest()
   return Buffer.from(eventHash).toString('hex')
 }
 
 function getRelays() {
-  var relays = di.data[0].relay.filter(i => i.mode === 'rw').map(i => i.id)
-  return relays
+  let relays = []
+  console.log('qs', qs.relays)
+  if (qs.relays) {
+    relays = qs.relays.split(',').map(el => {
+      console.log('el', el)
+      return ({ id: el, mode: 'rw' })
+    })
+  } else {
+    relays = _('#me').relays
+  }
+
+  const ret = relays?.filter(i => i.mode === 'rw').map(i => i.id)
+  return ret
 }
 
 function sendToRelay(relay, msg) {
-  var ws = new WebSocket(relay)
+  const ws = new WebSocket(relay)
   ws.onopen = function (e) {
     console.log('connected to', relay)
     console.log('sending', msg)
     ws.send(msg)
-    var timeout = 1000
+    const timeout = 1000
     setTimeout(() => ws.close(), timeout)
   }
 }
 
 async function generateKey(rawKey) {
-  var usages = ['encrypt', 'decrypt']
-  var extractable = false
+  const usages = ['encrypt', 'decrypt']
+  const extractable = false
 
   return crypto.subtle.importKey(
     'raw',
@@ -83,23 +92,23 @@ async function generateKey(rawKey) {
 }
 
 function _base64ToArrayBuffer(base64) {
-  var binary_string = window.atob(base64)
-  var len = binary_string.length
-  var bytes = new Uint8Array(len)
-  for (var i = 0; i < len; i++) {
+  const binary_string = window.atob(base64)
+  const len = binary_string.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) {
     bytes[i] = binary_string.charCodeAt(i)
   }
   return bytes.buffer
 }
 
 function _arrayBufferToBase64(buffer) {
-  var binary = '';
-  var bytes = new Uint8Array(buffer);
-  var len = bytes.byteLength;
-  for (var i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  let binary = ''
+  const bytes = new Uint8Array(buffer)
+  const len = bytes.byteLength
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i])
   }
-  return window.btoa(binary);
+  return window.btoa(binary)
 }
 
 class Message extends Component {
@@ -107,17 +116,13 @@ class Message extends Component {
     super(props)
     this.setState({})
     this.sendMessage = this.sendMessage.bind(this)
-
   }
 
   async componentDidMount() {
-    var priv = localStorage.getItem('key')
+    const priv = localStorage.getItem('key')
   }
 
   async sendMessage(e) {
-
-
-
     if (e.keyCode === 13) {
       // var priv = localStorage.getItem('key')
       // if (!priv) {
@@ -126,18 +131,17 @@ class Message extends Component {
       // }
 
       if (!window.nostr?.signEvent) {
-        alert(`nos2x required to send messages`)
+        alert('nos2x required to send messages')
         return
       }
 
-
-      var created_at = Math.floor(new Date().getTime() / 1000.0)
+      const created_at = Math.floor(new Date().getTime() / 1000.0)
       console.log('e', e.target.value)
       console.log('keycode', e.keyCode)
 
-      var kind = 4
-      var pubkey = di.data[1].currentchatid
-      var authenticatedUser = await me()
+      const kind = 4
+      const pubkey = di.data[1].currentchatid
+      const authenticatedUser = await me()
 
       // var sharedPoint = secp256k1.getSharedSecret(priv, '02' + pubkey)
       // var shared = sharedPoint.substr(2, 64)
@@ -162,36 +166,34 @@ class Message extends Component {
       // console.log('iv', iv)
       // console.log('comb', comb)
 
-      var comb = await window.nostr.nip04.encrypt(pubkey, e.target.value)
+      const comb = await window.nostr.nip04.encrypt(pubkey, e.target.value)
 
-
-      var canonical = []
+      const canonical = []
       canonical.push(0)
       canonical.push(authenticatedUser)
       canonical.push(created_at)
       canonical.push(kind)
-      canonical.push([["p", pubkey]])
+      canonical.push([['p', pubkey]])
       canonical.push(comb)
-      var sha = sha256(JSON.stringify(canonical))
+      const sha = sha256(JSON.stringify(canonical))
 
       console.log('canonical', JSON.stringify(canonical))
 
-
-      var event = {
+      let event = {
         id: sha,
         pubkey: authenticatedUser,
         created_at: created_at,
         kind: kind,
-        tags: [["p", pubkey]],
+        tags: [['p', pubkey]],
         content: comb
       }
 
       console.log('event', event)
 
-
       // event.sig = await secp256k1.schnorr.sign(sha, priv)
-      if (navigator.userAgent.indexOf("Firefox") > 0) {
-        event.sig = await window.nostr.signEvent(event)
+      if (navigator.userAgent.indexOf('Firefox') > 0) {
+        event = await window.nostr.signEvent(event)
+        // event.sig = await window.nostr.signEvent(event)
       } else {
         event = await window.nostr.signEvent(event)
       }
@@ -202,30 +204,18 @@ class Message extends Component {
       // var verify = await verifySignature(event)
       // console.log('verified', verify)
 
-      console.log('Sending...', JSON.stringify(['EVENT', event], di.data[0].relay[1].id))
+      console.log('Sending...', JSON.stringify(['EVENT', event], di?.data?.[0]?.relay?.[1]?.id))
 
       this.setState({ message: '' })
 
-      var relays = getRelays()
+      const relays = getRelays()
       console.log('relays', relays)
-      sendToRelay(relays[0], JSON.stringify(['EVENT', event]))
-
-      var message = {
-        id: sha,
-        source: authenticatedUser,
-        destination: pubkey,
-        description: comb,
-        timestamp: created_at
+      if (relays && relays.length) {
+        sendToRelay(relays[0], JSON.stringify(['EVENT', event]))
+      } else {
+        console.error('no relays found')
       }
-      console.log('adding message', message)
-      if (_('#me').messages.filter(e => e.id === sha).length === 0) {
-        _('#me').messages.push(message)
-      }
-      var d = document.getElementById('data')
-      d.innerHTML = JSON.stringify(di.data, null, 2)
-
     }
-
   }
 
   render() {
@@ -290,8 +280,6 @@ class Message extends Component {
       </div>
     </div>
     `
-
-
   }
 }
 

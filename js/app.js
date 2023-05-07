@@ -16,57 +16,55 @@ import '../js/dior.js'
 
 console.time('nostr.chat')
 
-var startTime = 0
-var authenticatedUser
+let startTime = 0
+let authenticatedUser
 
 // FUNCTIONS
 function sendReq(id, kind, authors, ws, p) {
   reqs++
   if (authors) {
-    let req = `["REQ", "${id}", { "kinds": [${kind}], "authors": ${JSON.stringify(authors)} }]`
+    const req = `["REQ", "${id}", { "kinds": [${kind}], "authors": ${JSON.stringify(authors)} }]`
     console.log('req', reqs, req)
     ws.send(req)
   } else if (p) {
-    let req = `["REQ", "${id}", { "kinds": [${kind}], "#p": ${JSON.stringify(p)} }]`
+    const req = `["REQ", "${id}", { "kinds": [${kind}], "#p": ${JSON.stringify(p)} }]`
     console.log('req', reqs, req)
     ws.send(req)
   }
 }
 
 function debug(debug) {
-  var currentTime = new Date();
-  var ms = currentTime.getMilliseconds();
-  console.log(ms + " !!!! " + debug);
+  const currentTime = new Date()
+  const ms = currentTime.getMilliseconds()
+  console.log(ms + ' !!!! ' + debug)
 }
 
 // get me i.e. public key
 
-
 function findNode(id, currentNode) {
-  var i,
+  let i,
     currentChild,
-    result;
+    result
 
   if (id == currentNode.id || id == currentNode['@id']) {
-    return currentNode;
+    return currentNode
   } else {
-
     // Use a for loop instead of forEach to avoid nested functions
     // Otherwise "return" will not work properly
     for (i = 0; i < currentNode.length; i += 1) {
-      currentChild = currentNode[i];
+      currentChild = currentNode[i]
 
       // Search in the current child
-      result = findNode(id, currentChild);
+      result = findNode(id, currentChild)
 
       // Return the result if the node has been found
       if (result !== false) {
-        return result;
+        return result
       }
     }
 
     // The node has not been found and we have no more options
-    return false;
+    return false
   }
 }
 
@@ -80,9 +78,9 @@ globalThis.qs = Object.fromEntries(
 )
 globalThis._ = _
 
-var id = Math.random()
+const id = Math.random()
 
-var f = []
+let f = []
 var reqs = 0
 
 // COMPONENTS
@@ -112,33 +110,33 @@ class App extends Component {
   }
 
   async processQueue() {
-    var q = this.queue
+    const q = this.queue
     this.processed++
 
     console.log(this.processed, 'processing queue', 'length', q?.length, 'timestamp', this.lastEvent)
-    var elapsed = Date.now() - startTime
+    const elapsed = Date.now() - startTime
     // console.log('time (ms)', elapsed)
     if (!q || q?.length === 0) {
       return
     }
 
     // return
-    var pubkey = await me()
+    const pubkey = await me()
 
-    var item = q?.pop()
-    var e = item[0]
-    var ws = item[1]
+    const item = q?.pop()
+    const e = item[0]
+    const ws = item[1]
 
-    var json = JSON.parse(e.data)
-    var payload = json[2]
+    const json = JSON.parse(e.data)
+    const payload = json[2]
     console.log(json)
-    var kind = payload.kind
+    const kind = payload?.kind
     // console.log('kind', kind)
 
     // process follows, fetch profile for each user
     if (kind === 3) {
-      var followed = json[2].tags
-      var authors = []
+      const followed = json[2].tags
+      const authors = []
       followed.forEach(i => {
         authors.push(i[1])
       })
@@ -157,7 +155,7 @@ class App extends Component {
 
     // process chat messages
     if (kind === 4) {
-      var message = {
+      const message = {
         id: payload.id,
         source: payload.pubkey,
         destination: payload.tags[0][1],
@@ -171,7 +169,7 @@ class App extends Component {
 
     // process profiles
     if (kind === 0) {
-      let content = JSON.parse(payload.content)
+      const content = JSON.parse(payload.content)
       if (content.name && content.picture) {
         // payload : , payload)
 
@@ -204,13 +202,11 @@ class App extends Component {
           if (
             el.source === pubkey &&
             el.destination === payload.pubkey
-          )
-            p.unread++
+          ) { p.unread++ }
           if (
             el.destination === pubkey &&
             el.source === payload.pubkey
-          )
-            p.unread++
+          ) { p.unread++ }
         })
 
         const found = f.some(
@@ -228,34 +224,29 @@ class App extends Component {
         // console.log('followed', f)
         _('#me').roster = f
 
-
         // REPAINT
         if (elapsed > 2 && q.length === 0) {
           // renderAll()
           di.data.muation = true
           this.setState({ update: Math.random() })
-
-
         } else {
 
         }
       }
     }
 
-    var d = document.getElementById('data')
+    const d = document.getElementById('data')
     d.innerHTML = JSON.stringify(di.data, null, 2)
-
 
     if (q && q.length > 0) {
       proceessQueue()
     }
-
   }
 
   // FETCH
   async componentDidMount() {
     // get me from extension or other
-    var pub = await me()
+    const pub = await me()
     this.setState({ pubKey: pub })
     console.log('pub', pub)
     // console.log('handle mutations')
@@ -263,8 +254,20 @@ class App extends Component {
 
     // FETCH
     // one per relay
-    _('#me').relay.map(el => {
-      var ws = new ReconnectingWebSocket(el.id)
+    let relays = []
+    console.log('qs', qs.relays)
+    if (qs.relays) {
+      relays = qs.relays.split(',').map(el => {
+        console.log('el', el)
+        return ({ id: el, mode: 'rw' })
+      })
+    } else {
+      relays = _('#me').relays
+    }
+    console.log('relays', relays)
+
+    relays.map(el => {
+      const ws = new ReconnectingWebSocket(el.id)
 
       startTime = Date.now()
 
@@ -272,7 +275,7 @@ class App extends Component {
         console.log('connected to', el)
 
         // init
-        var pubkey = pub
+        const pubkey = pub
 
         // get follows
         // this.addToQueue('me', 3, [pubkey], ws)
@@ -301,7 +304,7 @@ class App extends Component {
 
   processMutation() {
     console.log('mutation!')
-    var currentPerson = _('#ui')?.currentchatid
+    let currentPerson = _('#ui')?.currentchatid
     currentPerson =
       _('#me')?.roster?.find(el => {
         if (el.id === currentPerson) return true
@@ -326,7 +329,7 @@ class App extends Component {
 
   render() {
     // init
-    var currentPerson = _('#ui')?.currentchatid
+    let currentPerson = _('#ui')?.currentchatid
 
     currentPerson =
       _('#me')?.roster?.find(el => {
