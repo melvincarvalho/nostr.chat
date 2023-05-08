@@ -1,8 +1,16 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
+const url = require('url')
 
-function createWindow () {
+async function createWindow () {
+  // Dynamically import the 'fonstr' module
+  const { createServer } = await import('fonstr')
+
+  // Create the HTTPS server
+  app.commandLine.appendSwitch('ignore-certificate-errors')
+  createServer({ port: 4444, useHttps: true })
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -12,8 +20,19 @@ function createWindow () {
     }
   })
 
+  const uri = url.format({
+    pathname: path.join(__dirname, 'index.html'),
+    protocol: 'file:',
+    slashes: true,
+    query: { pubkey: process.argv[2] }
+  })
+  console.log('loading', uri)
+  mainWindow.loadURL(uri)
+
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  // const uri = 'index.html?pubkey=' + process.argv[2]
+  // console.log('loading', uri)
+  // mainWindow.loadFile('index.html')
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

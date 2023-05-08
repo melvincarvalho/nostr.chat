@@ -5,7 +5,7 @@ export { me }
 let authenticatedUser
 
 // get me i.e. public key
-async function me() {
+async function me () {
   if (authenticatedUser) {
     return authenticatedUser
   }
@@ -31,6 +31,6 @@ async function me() {
     authenticatedUser = nos2x
   }
 
-  return authenticatedUser
+  return qs.pubkey || authenticatedUser
   //  || qs.user || _('#me').pubkey
 }

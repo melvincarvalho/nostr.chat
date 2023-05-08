@@ -27,6 +27,7 @@
   "homepage": "https://github.com/melvincarvalho/nostr.chat#readme",
   "dependencies": {
     "awaitnostr": "^0.0.7",
+    "fonstr": "^0.0.8",
     "hex-to-array-buffer": "^2.0.0",
     "http": "^0.0.1-security",
     "moment": "^2.29.1",
