@@ -29,7 +29,7 @@ Nostr Chat is a chat interface for the [nostr](https://github.com/fiatjaf/nostr)
 
 Run your own, or demo can be seen at [nostr.chat](https://nostr.chat)
 
-Please install [nos2x](https://github.com/fiatjaf/nos2x) browser extension for key management
+Please install a NIP-07 extension such as [Alby](https://github.com/nostrcg/userguide/wiki/Getting_Started), or [nos2x](https://github.com/fiatjaf/nos2x) browser extension for key management
 
 ## Installation
 
