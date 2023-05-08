@@ -1,6 +1,8 @@
+import awaitNostr from './awaitnostr.js'
+
 export { me }
 
-var authenticatedUser
+let authenticatedUser
 
 // get me i.e. public key
 async function me() {
@@ -8,9 +10,13 @@ async function me() {
     return authenticatedUser
   }
 
-  const delay = t => new Promise(resolve => setTimeout(resolve, t));
+  // const delay = t => new Promise(resolve => setTimeout(resolve, t))
 
-  var nos2x = await delay(100).then(() => window.nostr?.getPublicKey())
+  console.log('awaiting nostr')
+  await awaitNostr()
+  console.log('awaited nostr')
+  const nos2x = await window.nostr?.getPublicKey()
+  console.log('nos2x', nos2x)
 
   if (nos2x) {
     // if (navigator.userAgent.indexOf("Firefox") > 0) {
