@@ -2,10 +2,11 @@
   "name": "nostr-chat",
   "version": "0.0.26",
   "description": "nostr chat",
-  "main": "index.js",
+  "main": "index.cjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "serve ."
+    "start": "serve .",
+    "electron": "electron ."
   },
   "type": "module",
   "bin": {
@@ -34,5 +35,8 @@
     "serve": "^13.0.2",
     "sha256": "^0.2.0",
     "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "electron": "^24.2.0"
   }
 }

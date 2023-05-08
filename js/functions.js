@@ -10,12 +10,18 @@ async function me() {
     return authenticatedUser
   }
 
-  // const delay = t => new Promise(resolve => setTimeout(resolve, t))
+  const delay = t => new Promise(resolve => setTimeout(resolve, t))
 
   console.log('awaiting nostr')
   await awaitNostr()
   console.log('awaited nostr')
-  const nos2x = await window.nostr?.getPublicKey()
+  console.log(window.nostr)
+  let nos2x
+  try {
+    nos2x = await window.nostr?.getPublicKey()
+  } catch (e) {
+    console.log('error', e)
+  }
   console.log('nos2x', nos2x)
 
   if (nos2x) {
