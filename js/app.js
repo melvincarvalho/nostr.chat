@@ -10,7 +10,7 @@ import Message from '../components/Message.js'
 import MessageBox from '../components/MessageBox.js'
 import ReconnectingWebSocket from 'https://cdn.skypack.dev/reconnecting-websocket'
 import handleMutation from '../js/handlemutation.js'
-import { me } from '../js/functions.js'
+import { me, currentUser } from '../js/functions.js'
 
 import '../js/dior.js'
 
@@ -20,7 +20,7 @@ let startTime = 0
 let authenticatedUser
 
 // FUNCTIONS
-function sendReq(id, kind, authors, ws, p) {
+function sendReq (id, kind, authors, ws, p) {
   reqs++
   if (authors) {
     const req = `["REQ", "${id}", { "kinds": [${kind}], "authors": ${JSON.stringify(authors)} }]`
@@ -33,7 +33,7 @@ function sendReq(id, kind, authors, ws, p) {
   }
 }
 
-function debug(debug) {
+function debug (debug) {
   const currentTime = new Date()
   const ms = currentTime.getMilliseconds()
   console.log(ms + ' !!!! ' + debug)
@@ -41,7 +41,7 @@ function debug(debug) {
 
 // get me i.e. public key
 
-function findNode(id, currentNode) {
+function findNode (id, currentNode) {
   let i,
     currentChild,
     result
@@ -68,7 +68,7 @@ function findNode(id, currentNode) {
   }
 }
 
-function _(id) {
+function _ (id) {
   return findNode(id, di.data)
 }
 
@@ -86,7 +86,7 @@ var reqs = 0
 // COMPONENTS
 class App extends Component {
   // CONSTRUCTOR
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {}
     this.processMutation = this.processMutation.bind(this)
@@ -97,19 +97,19 @@ class App extends Component {
   }
 
   // HANDLERS
-  handleClick() {
+  handleClick () {
     console.log('click')
   }
 
   // QUEUE
   //
   // [[event, ws]]
-  addToQueue(event, ws) {
+  addToQueue (event, ws) {
     this.lastEvent = Date.now()
     this.queue.push([event, ws])
   }
 
-  async processQueue() {
+  async processQueue () {
     const q = this.queue
     this.processed++
 
@@ -244,9 +244,9 @@ class App extends Component {
   }
 
   // FETCH
-  async componentDidMount() {
+  async componentDidMount () {
     // get me from extension or other
-    const pub = await me()
+    const pub = await currentUser()
     this.setState({ pubKey: pub })
     console.log('pub', pub)
     // console.log('handle mutations')
@@ -302,7 +302,7 @@ class App extends Component {
     })
   }
 
-  processMutation() {
+  processMutation () {
     console.log('mutation!')
     let currentPerson = _('#ui')?.currentchatid
     currentPerson =
@@ -327,7 +327,7 @@ class App extends Component {
     console.log('setstate m', m)
   }
 
-  render() {
+  render () {
     // init
     let currentPerson = _('#ui')?.currentchatid
 

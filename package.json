@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "serve .",
-    "electron": "electron ."
+    "electron": "electron .",
+    "build": "electron-builder"
   },
   "type": "module",
   "bin": {
@@ -38,6 +39,7 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
-    "electron": "^24.2.0"
+    "electron": "^24.2.0",
+    "electron-builder": "^23.6.0"
   }
 }
