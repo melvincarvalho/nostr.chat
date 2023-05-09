@@ -1,6 +1,6 @@
 {
   "name": "nostr-chat",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "nostr chat",
   "main": "index.cjs",
   "scripts": {
