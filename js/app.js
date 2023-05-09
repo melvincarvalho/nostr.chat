@@ -33,6 +33,95 @@ function sendReq (id, kind, authors, ws, p) {
   }
 }
 
+function processFollows (json, ws) {
+  const followed = json[2].tags
+  const authors = followed.map(i => i[1])
+  if (json[1] === 'me') {
+    sendReq(id, 0, authors, ws)
+  }
+}
+
+function processChatMessages (payload, pubkey) {
+  const message = {
+    id: payload.id,
+    source: payload.pubkey,
+    destination: payload.tags[0][1],
+    description: payload.content,
+    timestamp: payload.created_at
+  }
+  if (_('#me').messages.filter(e => e.id === payload.id).length === 0) {
+    _('#me').messages.push(message)
+  }
+}
+
+async function processProfiles (payload, pubkey, elapsed, queue) {
+  const content = JSON.parse(payload.content)
+  if (content.name && content.picture) {
+    updateProfileData(payload, content, pubkey)
+
+    const found = f.some(person => person.pubkey === payload.pubkey)
+    if (!found) {
+      const profileData = createProfileData(payload, content, pubkey)
+      if (profileData.id !== pubkey) {
+        f.push(profileData)
+      }
+    }
+    f = f.sort((a, b) => b.unread - a.unread)
+
+    _('#me').roster = f
+
+    if (elapsed > 2 && queue.length === 0) {
+      di.data.muation = true
+      this.setState({ update: Math.random() })
+    }
+  }
+}
+
+function updateProfileData (payload, content, pubkey) {
+  if (payload.pubkey === pubkey) {
+    _('#me').about = content.about
+    _('#me').name = content.name
+    _('#me').nick = content.nick
+    _('#me').fullname = content.name
+    _('#me').image = content.picture
+  }
+}
+
+function createProfileData (payload, content, pubkey) {
+  const profileData = {
+    id: payload.pubkey,
+    name: content.name,
+    image: content.picture,
+    pubkey: payload.pubkey,
+    blurb: 'Online',
+    about: content.about,
+    lastMessage: '12:51',
+    unread: Math.floor(Math.random * 1.7)
+  }
+
+  profileData.unread = 0
+
+  // saved messages
+  if (payload.name === 'Saved Messages') {
+    _('#me').messages.forEach(el => {
+      if (el.source === pubkey && el.destination === pubkey.pubkey) {
+        profileData.unread++
+      }
+    })
+  } else {
+    _('#me').messages.forEach(el => {
+      if (el.source === pubkey && el.destination === payload.pubkey) {
+        profileData.unread++
+      }
+      if (el.destination === pubkey && el.source === payload.pubkey) {
+        profileData.unread++
+      }
+    })
+  }
+
+  return profileData
+}
+
 function debug (debug) {
   const currentTime = new Date()
   const ms = currentTime.getMilliseconds()
@@ -104,142 +193,47 @@ class App extends Component {
   // QUEUE
   //
   // [[event, ws]]
+  // QUEUE
   addToQueue (event, ws) {
     this.lastEvent = Date.now()
     this.queue.push([event, ws])
   }
 
   async processQueue () {
-    const q = this.queue
+    const queue = this.queue
     this.processed++
 
-    console.log(this.processed, 'processing queue', 'length', q?.length, 'timestamp', this.lastEvent)
+    console.log(this.processed, 'processing queue', 'length', queue?.length, 'timestamp', this.lastEvent)
     const elapsed = Date.now() - startTime
-    // console.log('time (ms)', elapsed)
-    if (!q || q?.length === 0) {
+    if (!queue || queue?.length === 0) {
       return
     }
 
-    // return
     const pubkey = await me()
+    const [event, ws] = queue.pop()
 
-    const item = q?.pop()
-    const e = item[0]
-    const ws = item[1]
-
-    const json = JSON.parse(e.data)
+    const json = JSON.parse(event.data)
     const payload = json[2]
     console.log(json)
     const kind = payload?.kind
-    // console.log('kind', kind)
 
-    // process follows, fetch profile for each user
-    if (kind === 3) {
-      const followed = json[2].tags
-      const authors = []
-      followed.forEach(i => {
-        authors.push(i[1])
-      })
-      if (json[1] === 'me') {
-        sendReq(id, 0, authors, ws)
-      }
-      // followed.forEach(i => {
-      //   // console.log(i)
-
-      //   // get profiles of follows
-      //   sendReq(id, 0, [i[1]], ws)
-      // })
-      // console.log('event', json)
-      // console.log('got followed event', followed)
+    switch (kind) {
+      case 3:
+        processFollows(json, ws)
+        break
+      case 4:
+        processChatMessages(payload, pubkey)
+        break
+      case 0:
+        await processProfiles(payload, pubkey, elapsed, queue)
+        break
     }
 
-    // process chat messages
-    if (kind === 4) {
-      const message = {
-        id: payload.id,
-        source: payload.pubkey,
-        destination: payload.tags[0][1],
-        description: payload.content,
-        timestamp: payload.created_at
-      }
-      if (_('#me').messages.filter(e => e.id === payload.id).length === 0) {
-        _('#me').messages.push(message)
-      }
-    }
+    const dataElem = document.getElementById('data')
+    dataElem.innerHTML = JSON.stringify(di.data, null, 2)
 
-    // process profiles
-    if (kind === 0) {
-      const content = JSON.parse(payload.content)
-      if (content.name && content.picture) {
-        // payload : , payload)
-
-        var p = this.state.pubKey
-        // console.log('p', p)
-        // console.log('payload.pubkey', payload.pubkey)
-
-        if (payload.pubkey === p) {
-          _('#me').about = content.about
-          _('#me').name = content.name
-          _('#me').nick = content.nick
-          _('#me').fullname = content.name
-          _('#me').image = content.picture
-          // console.log('about', content.about)
-        }
-
-        var p = {
-          id: payload.pubkey,
-          name: content.name,
-          image: content.picture,
-          pubkey: payload.pubkey,
-          blurb: 'Online',
-          about: content.about,
-          lastMessage: '12:51',
-          unread: Math.floor(Math.random() * 1.7)
-        }
-
-        p.unread = 0
-        _('#me').messages.forEach(el => {
-          if (
-            el.source === pubkey &&
-            el.destination === payload.pubkey
-          ) { p.unread++ }
-          if (
-            el.destination === pubkey &&
-            el.source === payload.pubkey
-          ) { p.unread++ }
-        })
-
-        const found = f.some(
-          person => person.pubkey === payload.pubkey
-        )
-        if (!found) {
-          if (p.id !== pubkey) {
-            f.push(p)
-          }
-        }
-        f = f.sort((a, b) => {
-          return b.unread - a.unread
-        })
-
-        // console.log('followed', f)
-        _('#me').roster = f
-
-        // REPAINT
-        if (elapsed > 2 && q.length === 0) {
-          // renderAll()
-          di.data.muation = true
-          this.setState({ update: Math.random() })
-        } else {
-
-        }
-      }
-    }
-
-    const d = document.getElementById('data')
-    d.innerHTML = JSON.stringify(di.data, null, 2)
-
-    if (q && q.length > 0) {
-      proceessQueue()
+    if (queue && queue.length > 0) {
+      processQueue()
     }
   }
 
@@ -249,6 +243,18 @@ class App extends Component {
     const pub = await currentUser()
     this.setState({ pubKey: pub })
     console.log('pub', pub)
+    if (f.length === 0) {
+      f.push({
+        id: pub,
+        name: 'Saved Messages',
+        image: './images/saved.jpg',
+        pubkey: pub,
+        blurb: 'Online',
+        about: 'About me',
+        lastMessage: '12:51',
+        unread: 0
+      })
+    }
     // console.log('handle mutations')
     handleMutation('data', this.processMutation)
 
@@ -337,15 +343,24 @@ class App extends Component {
       }) || _('#me')
     console.log('currentPerson', currentPerson)
 
-    var m = []
-    var m = _('#me').messages.filter(el => {
-      if (
-        el.source === currentPerson.id ||
-        el.destination === currentPerson.id
-      ) {
-        return true
-      }
-    })
+    let m = []
+
+    if (currentPerson.name === 'Saved Messages') {
+      m = _('#me').messages.filter(el => {
+        if (el.source === currentPerson.id && el.destination === currentPerson.id) {
+          return true
+        }
+      })
+    } else {
+      m = _('#me').messages.filter(el => {
+        if (
+          el.source === currentPerson.id ||
+          el.destination === currentPerson.id
+        ) {
+          return true
+        }
+      })
+    }
 
     console.log('massage', m)
 
@@ -459,7 +474,7 @@ class App extends Component {
                       >
                         Apr 2
                       </div>
-                      ${this.state.m?.map(el => {
+                      ${m?.map(el => {
       return html`
                           <${Message}
                             message="${el}"
@@ -602,6 +617,6 @@ class App extends Component {
 render(
   html`
           <${App} />
-        `,
+  `,
   document.body
 )
