@@ -13,6 +13,7 @@ import handleMutation from '../js/handlemutation.js'
 import { me, currentUser } from '../js/functions.js'
 
 import '../js/dior.js'
+import '../js/nostr-login-shim.js'
 
 console.time('nostr.chat')
 
